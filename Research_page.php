@@ -748,7 +748,6 @@
       <div data-aos="fade-up">
         <h4 class="mb-4">UIU Research Portal</h4>
         <p class="mb-4 opacity-75">Connecting innovative minds and groundbreaking research</p>
-        <a href="src/model/debug_mongodb.php" class="btn btn-sm footer-btn text-light">Debug Database</a>
         <p class="mt-5 pt-3">&copy; 2025 UIU Research Portal. All rights reserved.</p>
       </div>
     </div>

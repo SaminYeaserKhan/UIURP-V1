@@ -78,3 +78,8 @@ etherpad/etherpad-lite/src/node_modules/
 
 # Secret settings (copy config/secrets.example.php to create it)
 config/secrets.php
+
+# Demo recording settings and output
+demo/demo.env
+demo/videos/
+demo/node_modules/

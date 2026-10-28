@@ -1,0 +1,11 @@
+{
+  "name": "uiurp-demo",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "demo": "node record-demo.mjs"
+  },
+  "dependencies": {
+    "playwright": "1.48.2"
+  }
+}

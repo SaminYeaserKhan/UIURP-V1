@@ -3309,19 +3309,28 @@
             align-items: center;
         }
         
-        /* Scroll Down Indicator */
+        /* Scroll Down Indicator: sits below the search box, so it can't cover the
+           popular-search tags on shorter screens */
         .scroll-down-container {
-            position: absolute;
-            bottom: 50px;
-            left: 0;
-            right: 0;
+            position: relative;
             display: flex;
             flex-direction: column;
             align-items: center;
             z-index: 10;
             cursor: pointer;
             transition: var(--transition);
-            margin-top: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        /* Tall desktop screens have room to pin it near the bottom of the section */
+        @media (min-width: 992px) and (min-height: 900px) {
+            .scroll-down-container {
+                position: absolute;
+                bottom: 50px;
+                left: 0;
+                right: 0;
+                margin-top: 0;
+            }
         }
         
         .scroll-down-text {
@@ -3375,7 +3384,7 @@
             background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
             position: relative;
             overflow: hidden;
-            padding: 60px 0;
+            padding: 85px 0 60px; /* top clears the fixed 75px navbar */
             min-height: 100vh;
             display: flex;
             align-items: center;

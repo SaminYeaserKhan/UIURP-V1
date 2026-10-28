@@ -3,7 +3,7 @@ require __DIR__ . '/../../vendor/autoload.php'; // Updated path to Composer's au
 
 try {
     // Connect to MongoDB using the provided connection string
-    $mongoClient = new MongoDB\Client("mongodb+srv://uiurp:uiurp12345@uiurp.fluqo.mongodb.net/uiurp?retryWrites=true&w=majority");
+    $mongoClient = new MongoDB\Client(require __DIR__ . '/../config/mongo_uri.php');
     $db = $mongoClient->uiurp; // Select the database
     $collection = $db->resources; // Select the 'resources' collection
 

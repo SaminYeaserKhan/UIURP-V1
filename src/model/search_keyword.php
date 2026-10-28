@@ -4,7 +4,7 @@ require __DIR__ . '/../../vendor/autoload.php'; // Updated path to Composer's au
 $data = json_decode(file_get_contents('php://input'), true);
 $keyword = $data['keyword'];
 
-$mongoClient = new MongoDB\Client("mongodb+srv://uiurp:uiurp12345@uiurp.fluqo.mongodb.net/uiurp?retryWrites=true&w=majority");
+$mongoClient = new MongoDB\Client(require __DIR__ . '/../config/mongo_uri.php');
 $db = $mongoClient->uiurp;
 $collection = $db->keywords;
 

@@ -1,0 +1,14 @@
+# Database connection string (copy config/database.example.php to create it)
+config/database.php
+.env
+
+# Installed by `composer install`
+vendor/
+composer.phar
+
+# Created while the app runs
+logs/
+storage/
+
+# macOS
+.DS_Store

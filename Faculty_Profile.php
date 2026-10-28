@@ -10,7 +10,7 @@ session_start();
 require 'vendor/autoload.php';
 
 // Create a MongoDB client
-$client = new MongoDB\Client("mongodb+srv://uiurp:uiurp12345@uiurp.fluqo.mongodb.net/uiurp?retryWrites=true&w=majority");
+$client = new MongoDB\Client(require __DIR__ . '/src/config/mongo_uri.php');
 $collection = $client->uiurp->faculties;
 
 // Check if the 'id' parameter is set in the URL

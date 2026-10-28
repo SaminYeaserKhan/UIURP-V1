@@ -6,7 +6,7 @@ use MongoDB\Client;
 use MongoDB\BSON\ObjectId;
 
 // Update the MongoDB connection string and database name
-$mongoClient = new Client("mongodb+srv://uiurp:uiurp12345@uiurp.fluqo.mongodb.net/uiurp?retryWrites=true&w=majority");
+$mongoClient = new Client(require __DIR__ . '/../config/mongo_uri.php');
 $db = $mongoClient->uiurp;
 
 $loginInfoCollection = $db->login_info;

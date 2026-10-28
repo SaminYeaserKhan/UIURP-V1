@@ -16,7 +16,7 @@ if (!isset($data['searchString']) || !is_string($data['searchString'])) {
 $searchString = $data['searchString'];
 $searchWords = explode(' ', $searchString);
 
-$mongoClient = new MongoDB\Client("mongodb+srv://uiurp:uiurp12345@uiurp.fluqo.mongodb.net/uiurp?retryWrites=true&w=majority");
+$mongoClient = new MongoDB\Client(require __DIR__ . '/../config/mongo_uri.php');
 $db = $mongoClient->uiurp;
 $collection = $db->projectsV2;
 

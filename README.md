@@ -1,181 +1,77 @@
-# UIU-RP
+# UIU Research Portal (UIURP)
 
-The **UIU Research Portal (UIURP)** is a web-based platform designed to facilitate and promote research activities at United International University (UIU). It serves as a hub where students and faculty members can explore research projects, connect with mentors, and collaborate on academic initiatives. The portal provides essential features such as research project listings, faculty profiles, keyword-based search functionality, and a discussion forum to enhance engagement within the university's research community. 
+A web platform that connects students and faculty at United International University around
+research: browse and search research projects, find faculty by their research interests, and
+discuss ideas in a forum. Built with PHP and MongoDB.
 
----
+**1st Runner-Up, Software Engineering Lab Project Showcase, UIU (2025).**
 
-## **Windows Setup**
+<!-- Demo video: on github.com, edit this file and drag your .mp4 onto this line. -->
 
-### **1. Install MongoDB Community Edition**
+<!-- Screenshots: add them to docs/screenshots/ and list them in this table.
+| Research projects | Project page | Faculty profile | Forum |
+|---|---|---|---|
+| ![](docs/screenshots/research.png) | ![](docs/screenshots/project.png) | ![](docs/screenshots/faculty.png) | ![](docs/screenshots/forum.png) |
+-->
 
-i. **Download MongoDB**:
+## What it does
 
-   - Visit the official MongoDB download page: [MongoDB Download Center](https://www.mongodb.com/try/download/community).
-   - Select **Windows** as the operating system.
-   - Choose the **MSI Installer** (easier installation).
-   - Click **Download**.
+- **Research projects:** listings with title, abstract, field, members, supervisor, timeline,
+  keywords, cover image and media, plus a details page for each project
+- **Project management:** create, edit and delete projects, upload images and files, and
+  switch a project between public and private
+- **Search:** keyword search across project titles, abstracts, fields and keywords
+- **Faculty and student profiles:** research interests, publications and contact details
+- **Discussion forum** for questions and research ideas
+- Separate sign-up and login for students and faculty
 
-ii. **Run the Installer**:
+## Team
 
-   - Double-click the downloaded **MSI** file.
-   - Follow the installation wizard:
-     - Choose **Complete** installation.
-     - Ensure **Install MongoDB as a Service** is checked.
-     - Leave the default port **27017** (or change if necessary).
-   - Click **Install** and complete the setup.
+Built by a team of four for the Software Engineering Lab course: Najmol Hasan, Syed Nafis,
+Sazzad Abedin and [Samin Yeaser Khan](https://github.com/SaminYeaserKhan).
 
-iii. **Verify Installation**:
+Samin built the research-project management module: creating, editing and deleting projects
+with cover-image and media uploads, members, supervisor and timeline, public/private
+visibility, the project details page, and search across projects. The commit history shows
+each member's work.
 
-   - Open **Command Prompt** (`Win + R` → type `cmd` → press Enter).
-   - Run the following command to check if MongoDB is installed:
-     ```bash
-     mongod --version
-     ```
-   - If the command works, MongoDB is installed successfully.
+## Built with
 
----
+PHP · MongoDB (MongoDB PHP library) · HTML, CSS and JavaScript · Bootstrap
 
-### **2. Install MongoDB Compass (GUI Tool) + setup MongoDB Atlas**
+## Run it locally
 
-i. **Download MongoDB Compass**:
+You need PHP 8 with the `mongodb` extension, [Composer](https://getcomposer.org), and a
+MongoDB database (a free MongoDB Atlas cluster or a local MongoDB server).
 
-   - Visit the official download page: [MongoDB Compass Download](https://www.mongodb.com/products/compass).
-   - Select **Windows** and download the installer.
+1. Install the PHP MongoDB extension if you don't have it:
+   ```bash
+   pecl install mongodb
+   ```
+   Then add `extension=mongodb` to your `php.ini`. On Windows with XAMPP, download the
+   matching `php_mongodb.dll` from [PECL](https://pecl.php.net/package/mongodb) instead.
 
-ii. **Run the Installer**:
+2. Get the code and its libraries:
+   ```bash
+   git clone https://github.com/SaminYeaserKhan/UIURP-V1.git
+   cd UIURP-V1
+   composer install
+   ```
 
-   - Double-click the installer and follow the setup instructions.
+3. Point it at your database. Copy the example config and put your own connection string in
+   it:
+   ```bash
+   cp config/database.example.php config/database.php
+   ```
+   `config/database.php` is ignored by git. You can set a `MONGODB_URI` environment variable
+   instead.
 
-iii. **Connect MongoDB Compass to UIURP**:
+4. Start PHP's built-in server and open http://localhost:8000:
+   ```bash
+   php -S localhost:8000
+   ```
 
-   - If you are using MongoDB Compass, follow these steps:
-   - Open MongoDB Compass.
-   - Click New Connection.
-   - In the Connection String field, paste:
-     ```perl
-        mongodb+srv://uiurp:uiurp12345@uiurp.fluqo.mongodb.net/
-     ```
-   - Click Connect.
-   - If successful, you will see your database and collections.
-
----
-### **3. Clone repo + run**
-
-i. **Clone Project**:
-
-   - Open Command Prompt (Win + R → type cmd → Enter).
-   - Navigate to the XAMPP htdocs directory:
-        ```bash
-           cd C:\xampp\htdocs
-        ```
-   - Clone the UIURP repository:
-        ``` bash
-           git clone https://github.com/syed-nafis/uiurp.git
-        ```
-ii. **Start Apache Web Server**:
-
-   - Open XAMPP Control Panel.
-   - Click Start next to Apache.
-   - Open a browser and visit:
-        ```arduino
-           http://localhost/uiurp/
-        ```
-        The UIU Research Portal should now be running!
-   
-
-## **macOS Setup**
-
-### **1. Install MongoDB Community Edition**
-
-MongoDB is installed on macOS via **Homebrew**.
-
-i. **Install Homebrew** (if not already installed):
-
-   - Open **Terminal** and run:
-     ```bash
-     /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-     ```
-
-ii. **Install MongoDB**:
-
-   - Run the following command:
-     ```bash
-     brew tap mongodb/brew
-     brew install mongodb-community@7.0
-     ```
-   - Replace `7.0` with the latest MongoDB version if needed.
-
-iii. **Start MongoDB Service**:
-
-   - Run:
-     ```bash
-     brew services start mongodb-community@7.0
-     ```
-
-iv. **Verify Installation**:
-
-   - Run:
-     ```bash
-     mongod --version
-     ```
-   - If it returns a version number, MongoDB is installed successfully.
-
----
-
-### **2. Install MongoDB Compass**
-
-i. **Download MongoDB Compass**:
-
-   - Visit: [MongoDB Compass Download](https://www.mongodb.com/products/compass).
-   - Select **macOS** and download the `.dmg` file.
-
-ii. **Install MongoDB Compass**:
-
-   - Open the **.dmg** file.
-   - Drag the **MongoDB Compass** icon to the **Applications** folder.
-
-iii. **Connect MongoDB Compass to UIURP**:
-
-   - Open MongoDB Compass.
-   - Click New Connection.
-   - In the Connection String field, paste:
-     ```perl
-        mongodb+srv://uiurp:uiurp12345@uiurp.fluqo.mongodb.net/
-     ```
-   - Click Connect.
-   - If successful, you will see your database and collections.
-
-### **3. Run**:
-
-i. **Clone Project**:
-
-   - Open Terminal
-   - Navigate to prefered directory
-   - Clone the UIURP repository:
-        ``` bash
-           git clone https://github.com/syed-nafis/uiurp.git
-        ```
-   - Move into the project folder:
-        ```bash
-              cd uiurp
-        ```
-
-ii. **Use Built in PHP server**
-
-   - use PHP's built-in server to run the project.
-   - Make sure you are inside the project folder:
-   - Start the PHP development server:
-      ```bash
-           php -S localhost:8000
-      ```
-   - Open a browser and visit:
-      ```bash
-           http://localhost:8000/
-      ```
-      The UIU Research Portal should now be running!
-
----
-
-## **Conclusion**
-
-**For further assistance ask ChatGPT**
+**Sample data:** open http://localhost:8000/src/model/import_json_projects.php once to load
+sample projects. The other files in `assets/json/` can be imported with MongoDB Compass
+(Add data → Import JSON file); for example, `uiurp_users.json` goes into the `login_info`
+collection.

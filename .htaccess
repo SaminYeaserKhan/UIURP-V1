@@ -1,0 +1,35 @@
+# PHP Settings
+<IfModule mod_php.c>
+    php_value upload_max_filesize 25M
+    php_value post_max_size 26M
+    php_value memory_limit 256M
+    php_value max_execution_time 300
+    php_value max_input_time 300
+</IfModule>
+
+# Alternative PHP Settings using SetEnv
+<IfModule mod_env.c>
+    SetEnv PHP_VALUE "upload_max_filesize=25M \n post_max_size=26M \n memory_limit=256M"
+</IfModule>
+
+# Enable error reporting
+php_flag display_errors on
+php_value error_reporting E_ALL
+
+# Allow larger request sizes
+LimitRequestBody 26214400
+
+# Add headers for larger file uploads
+<IfModule mod_headers.c>
+    Header set X-Content-Type-Options "nosniff"
+    Header set X-Frame-Options "SAMEORIGIN"
+    Header set X-XSS-Protection "1; mode=block"
+</IfModule>
+
+# PHP Settings using ini_set (alternative method)
+<FilesMatch "\.php$">
+    <IfModule mod_headers.c>
+        Header set X-PHP-Upload-Max-Filesize "25M"
+        Header set X-PHP-Post-Max-Size "26M"
+    </IfModule>
+</FilesMatch> 

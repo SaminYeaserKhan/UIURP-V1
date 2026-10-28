@@ -1,4 +1,18 @@
 <?php
+// CORS headers for cross-origin requests
+header('Access-Control-Allow-Origin: http://localhost:3000');
+header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
+header('Access-Control-Allow-Headers: Content-Type, Authorization');
+header('Access-Control-Allow-Credentials: true');
+
+// Handle preflight OPTIONS request
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(200);
+    exit();
+}
+
+header('Content-Type: application/json');
+
 require_once 'db_connect.php';
 require_once __DIR__ . '/../../vendor/autoload.php';
 
@@ -46,6 +60,7 @@ try {
                 'institution' => 1,
                 'createdAt' => 1,
                 'updatedAt' => 1,
+                'estimatedCompletionDate' => 1,
                 'privacy' => 1,
                 'members' => 1,
                 'timeline' => 1,
@@ -62,12 +77,42 @@ try {
         $project = $collection->findOne($filter, $options);
         
         if ($project) {
-            // Increment view count if stats field exists
-            if (isset($project['stats']) && is_array($project['stats'])) {
+            // Initialize stats if they don't exist
+            if (!isset($project['stats']) || !is_array($project['stats'])) {
+                $project['stats'] = ['views' => 1, 'downloads' => 0, 'favorites' => 0];
+                
+                // Update the project with initial stats
+                $collection->updateOne(
+                    ['_id' => new ObjectId($projectId)],
+                    ['$set' => ['stats' => $project['stats']]]
+                );
+            } else {
+                // Increment view count if stats field exists
                 $collection->updateOne(
                     ['_id' => new ObjectId($projectId)],
                     ['$inc' => ['stats.views' => 1]]
                 );
+                // Update the local project object to reflect the incremented view count
+                $project['stats']['views'] = intval($project['stats']['views']) + 1;
+            }
+            
+            // Convert MongoDB UTCDateTime objects to proper format for JavaScript
+            if (isset($project['createdAt']) && is_object($project['createdAt'])) {
+                if (method_exists($project['createdAt'], 'toDateTime')) {
+                    $project['createdAt'] = ['$date' => $project['createdAt']->toDateTime()->format('c')];
+                }
+            }
+            
+            if (isset($project['updatedAt']) && is_object($project['updatedAt'])) {
+                if (method_exists($project['updatedAt'], 'toDateTime')) {
+                    $project['updatedAt'] = ['$date' => $project['updatedAt']->toDateTime()->format('c')];
+                }
+            }
+            
+            if (isset($project['estimatedCompletionDate']) && is_object($project['estimatedCompletionDate'])) {
+                if (method_exists($project['estimatedCompletionDate'], 'toDateTime')) {
+                    $project['estimatedCompletionDate'] = ['$date' => $project['estimatedCompletionDate']->toDateTime()->format('c')];
+                }
             }
             
             // Project found, no need to check other collections

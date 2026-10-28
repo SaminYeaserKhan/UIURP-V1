@@ -9,7 +9,12 @@ $faculties = $collection->find([], [
         '_id' => 1,
         'name' => 1,
         'bio' => 1,
-        'profile_image' => 1
+        'profile_image' => 1,
+        'interested_fields_of_research' => 1,
+        'department' => 1,
+        'position' => 1,
+        'office_number' => 1,
+        'email' => 1
     ]
 ])->toArray();
 

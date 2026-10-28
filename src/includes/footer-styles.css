@@ -1,0 +1,279 @@
+/* Centralized Footer Styles for UIU Research Portal */
+/* This file contains the enhanced footer styles that can be included in any page */
+
+/* Enhanced Footer Styles - Dark Theme (Default) */
+.enhanced-footer {
+    background: linear-gradient(135deg, #0a0d1a 0%, #1a1a2e 100%);
+    border-top: 1px solid rgba(37, 99, 235, 0.2);
+    position: relative;
+    overflow: hidden;
+    padding: 80px 0 40px;
+    color: #ffffff;
+    margin-top: 5rem;
+    transition: all 0.3s ease;
+}
+
+.enhanced-footer::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 1px;
+    background: linear-gradient(90deg, 
+        transparent, 
+        #2563eb, 
+        #8b5cf6, 
+        #14b8a6, 
+        transparent);
+    animation: border-glow 3s ease-in-out infinite;
+}
+
+@keyframes border-glow {
+    0%, 100% { opacity: 0.5; }
+    50% { opacity: 1; }
+}
+
+.footer-content {
+    position: relative;
+    z-index: 2;
+}
+
+.footer-title {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    background: linear-gradient(135deg, #ffffff, #2563eb);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    transition: all 0.3s ease;
+}
+
+.footer-description {
+    color: rgba(255, 255, 255, 0.7);
+    margin-bottom: 2rem;
+    font-size: 1.1rem;
+    line-height: 1.6;
+    transition: all 0.3s ease;
+}
+
+.footer-links {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.footer-links li {
+    margin-bottom: 12px;
+}
+
+.footer-links a {
+    color: rgba(255, 255, 255, 0.7);
+    text-decoration: none;
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.footer-links a::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 0;
+    height: 1px;
+    background: linear-gradient(90deg, #2563eb, #8b5cf6);
+    transition: width 0.3s ease;
+}
+
+.footer-links a:hover {
+    color: #2563eb;
+}
+
+.footer-links a:hover::after {
+    width: 100%;
+}
+
+.footer-section-title {
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+    color: #ffffff;
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+.footer-section-title::after {
+    content: '';
+    position: absolute;
+    bottom: -5px;
+    left: 0;
+    width: 30px;
+    height: 2px;
+    background: #2563eb;
+    border-radius: 1px;
+    transition: all 0.3s ease;
+}
+
+.social-links {
+    display: flex;
+    gap: 15px;
+    margin-top: 2rem;
+}
+
+.social-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 45px;
+    height: 45px;
+    background: rgba(30, 41, 59, 0.6);
+    border: 1px solid rgba(37, 99, 235, 0.2);
+    border-radius: 50%;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 1.1rem;
+    transition: all 0.3s ease;
+    text-decoration: none;
+}
+
+.social-link:hover {
+    background: #2563eb;
+    color: white;
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(37, 99, 235, 0.3);
+}
+
+.footer-bottom {
+    border-top: 1px solid rgba(37, 99, 235, 0.1);
+    margin-top: 3rem;
+    padding-top: 2rem;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+.copyright-text {
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 0.9rem;
+    margin: 0;
+    transition: all 0.3s ease;
+}
+
+/* Light Theme Styles */
+[data-theme="light"] .enhanced-footer {
+    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+    border-top: 1px solid rgba(67, 97, 238, 0.2);
+    color: var(--text-primary, #1e293b);
+}
+
+[data-theme="light"] .enhanced-footer::before {
+    background: linear-gradient(90deg, 
+        transparent, 
+        rgba(67, 97, 238, 0.6), 
+        rgba(114, 9, 183, 0.6), 
+        rgba(20, 184, 166, 0.6), 
+        transparent);
+}
+
+[data-theme="light"] .footer-title {
+    background: linear-gradient(135deg, #1e293b, #4361ee);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+
+[data-theme="light"] .footer-description {
+    color: var(--text-secondary, #64748b);
+}
+
+[data-theme="light"] .footer-section-title {
+    color: var(--text-primary, #1e293b);
+}
+
+[data-theme="light"] .footer-section-title::after {
+    background: var(--neo-primary, #4361ee);
+}
+
+[data-theme="light"] .footer-links a {
+    color: var(--text-secondary, #64748b);
+}
+
+[data-theme="light"] .footer-links a:hover {
+    color: var(--neo-primary, #4361ee);
+}
+
+[data-theme="light"] .footer-links a::after {
+    background: linear-gradient(90deg, var(--neo-primary, #4361ee), var(--neo-purple, #7209b7));
+}
+
+[data-theme="light"] .social-link {
+    background: rgba(67, 97, 238, 0.05);
+    border: 1px solid rgba(67, 97, 238, 0.15);
+    color: var(--text-secondary, #64748b);
+}
+
+[data-theme="light"] .social-link:hover {
+    background: var(--neo-primary, #4361ee);
+    color: white;
+    box-shadow: 0 8px 20px rgba(67, 97, 238, 0.25);
+}
+
+[data-theme="light"] .footer-bottom {
+    border-top: 1px solid rgba(67, 97, 238, 0.1);
+}
+
+[data-theme="light"] .copyright-text {
+    color: var(--text-secondary, #64748b);
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+    .enhanced-footer {
+        padding: 60px 0 30px;
+    }
+    
+    .footer-title {
+        font-size: 1.5rem;
+    }
+    
+    .footer-description {
+        font-size: 1rem;
+    }
+    
+    .social-links {
+        justify-content: center;
+    }
+}
+
+/* Animation for footer entrance */
+.enhanced-footer {
+    animation: fadeInUp 0.8s ease-out;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Smooth scrolling enhancement */
+.enhanced-footer * {
+    scroll-behavior: smooth;
+}
+
+/* Focus states for accessibility */
+.footer-links a:focus,
+.social-link:focus {
+    outline: 2px solid var(--neo-primary, #4361ee);
+    outline-offset: 2px;
+}
+
+[data-theme="light"] .footer-links a:focus,
+[data-theme="light"] .social-link:focus {
+    outline-color: var(--neo-primary, #4361ee);
+} 

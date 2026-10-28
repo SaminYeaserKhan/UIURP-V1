@@ -1,0 +1,318 @@
+[
+  {
+    "title": "Innovations in Sustainable Development: A UIU Perspective",
+    "description": "A comprehensive symposium hosted by UIU, discussing the latest research and technological advancements in sustainable infrastructure and green technology.",
+    "eventDate": "2025-11-15T00:00:00Z",
+    "startTime": "09:00",
+    "endTime": "17:30",
+    "timeZone": "Asia/Dhaka",
+    "location": {
+      "type": "Physical",
+      "room": "UIU Main Auditorium, Permanent Campus",
+      "building": "United International University",
+      "virtualPlatform": null,
+      "joinLink": null
+    },
+    "registration": {
+      "required": true,
+      "link": "https://events.uiu.ac.bd/register/sustainable-development-symposium",
+      "deadline": "2025-11-01T23:59:59Z"
+    },
+    "organizer": "UIU Faculty of Science and Engineering",
+    "speakers": [
+      {
+        "name": "Dr. Fatima Ahmed",
+        "affiliation": "UIU Department of Civil Engineering",
+        "topic": "Green Building Materials Research at UIU"
+      },
+      {
+        "name": "Prof. Ben Carter",
+        "affiliation": "International Institute for Sustainability",
+        "topic": "Global Trends in Sustainable Development"
+      }
+    ],
+    "eventType": "Symposium",
+    "tags": ["sustainable development", "green technology", "engineering", "research", "uiu"],
+    "status": "Scheduled",
+    "createdAt": "2025-05-01T10:00:00Z",
+    "updatedAt": "2025-05-15T11:30:00Z"
+  },
+  {
+    "title": "UIU Workshop: Introduction to Data Science with Python",
+    "description": "An introductory workshop by UIU's CSE department, covering the fundamentals of data science using Python. No prior programming experience required for UIU students.",
+    "eventDate": "2025-10-20T00:00:00Z",
+    "startTime": "14:00",
+    "endTime": "16:30",
+    "timeZone": "Asia/Dhaka",
+    "location": {
+      "type": "Virtual",
+      "room": null,
+      "building": null,
+      "virtualPlatform": "Zoom",
+      "joinLink": "https://vc.uiu.ac.bd/j/12345UIUDS78901"
+    },
+    "registration": {
+      "required": true,
+      "link": "https://events.uiu.ac.bd/register/data-science-python-workshop",
+      "deadline": "2025-10-18T23:59:59Z"
+    },
+    "organizer": "UIU Department of Computer Science and Engineering (CSE)",
+    "speakers": [
+      {
+        "name": "Mr. Raihan Islam",
+        "affiliation": "Lecturer, Department of CSE, UIU",
+        "topic": "Python Basics for Data Analysis"
+      }
+    ],
+    "eventType": "Workshop",
+    "tags": ["data science", "python", "beginners", "workshop", "online", "uiu"],
+    "status": "Scheduled",
+    "createdAt": "2025-06-10T09:00:00Z",
+    "updatedAt": "2025-06-12T14:00:00Z"
+  },
+  {
+    "title": "UIU International Conference on Business and Economic Challenges 2025",
+    "description": "An international conference hosted at UIU, addressing pressing global business and economic issues, fostering collaborative research.",
+    "eventDate": "2025-04-10T00:00:00Z",
+    "startTime": "10:00",
+    "endTime": "18:00",
+    "timeZone": "Asia/Dhaka",
+    "location": {
+      "type": "Hybrid",
+      "room": "UIU Multipurpose Hall, Permanent Campus",
+      "building": "United International University",
+      "virtualPlatform": "UIU Virtual Conference Portal",
+      "joinLink": "https://conference.uiu.ac.bd/business-econ-2025"
+    },
+    "registration": {
+      "required": true,
+      "link": "https://events.uiu.ac.bd/register/uiu-bizconf-2025",
+      "deadline": "2025-03-25T23:59:59Z"
+    },
+    "organizer": "UIU School of Business and Economics (SoBE)",
+    "speakers": [
+      {
+        "name": "Dr. Ananya Chowdhury",
+        "affiliation": "Professor, SoBE, UIU",
+        "topic": "Post-Pandemic Economic Recovery in South Asia"
+      },
+      {
+        "name": "Prof. Kenji Tanaka",
+        "affiliation": "Tokyo University, School of Economics",
+        "topic": "Global Supply Chain Disruptions"
+      }
+    ],
+    "eventType": "Conference",
+    "tags": ["business", "economics", "research", "conference", "uiu"],
+    "status": "Completed",
+    "createdAt": "2024-12-01T15:00:00Z",
+    "updatedAt": "2025-04-12T10:00:00Z"
+  },
+  {
+    "title": "Seminar: The Role of AI in Modern Healthcare at UIU",
+    "description": "A seminar by the UIU Health Informatics Research Group exploring innovative applications of Artificial Intelligence in healthcare.",
+    "eventDate": "2026-01-22T00:00:00Z",
+    "startTime": "11:00",
+    "endTime": "12:30",
+    "timeZone": "Asia/Dhaka",
+    "location": {
+      "type": "Physical",
+      "room": "Seminar Room 301, UIU Main Campus",
+      "building": "United International University",
+      "virtualPlatform": null,
+      "joinLink": null
+    },
+    "registration": {
+      "required": false,
+      "link": null,
+      "deadline": null
+    },
+    "organizer": "UIU Health Informatics Research Group",
+    "speakers": [
+      {
+        "name": "Dr. Salma Akhter",
+        "affiliation": "Associate Professor, UIU",
+        "topic": "AI-driven Diagnostics"
+      }
+    ],
+    "eventType": "Seminar",
+    "tags": ["AI", "healthcare", "health informatics", "research", "uiu"],
+    "status": "Scheduled",
+    "createdAt": "2025-07-01T11:00:00Z",
+    "updatedAt": "2025-07-01T11:00:00Z"
+  },
+  {
+    "title": "Guest Lecture: Exploring the Cosmos with UIU Astronomy Club",
+    "description": "Esteemed astrophysicist Dr. Zafar Iqbal discusses black holes and distant galaxies. Hosted by UIU Astronomy Club.",
+    "eventDate": "2025-11-05T00:00:00Z",
+    "startTime": "19:00",
+    "endTime": "20:30",
+    "timeZone": "Asia/Dhaka",
+    "location": {
+      "type": "Virtual",
+      "room": null,
+      "building": null,
+      "virtualPlatform": "Google Meet",
+      "joinLink": "https://meet.google.com/uiu-astro-xyz"
+    },
+    "registration": {
+      "required": false,
+      "link": "https://events.uiu.ac.bd/guest-lecture/cosmos-zafar-iqbal",
+      "deadline": null
+    },
+    "organizer": "UIU Astronomy Club",
+    "speakers": [
+      {
+        "name": "Dr. Zafar Iqbal",
+        "affiliation": "National Observatory",
+        "topic": "Mysteries of Black Holes"
+      }
+    ],
+    "eventType": "Guest Lecture",
+    "tags": ["astrophysics", "space", "lecture", "uiu", "astronomy"],
+    "status": "Scheduled",
+    "createdAt": "2025-08-15T16:00:00Z",
+    "updatedAt": "2025-08-16T09:30:00Z"
+  },
+  {
+    "title": "UIU Research Grant Proposal Writing Workshop (2 Days)",
+    "description": "A comprehensive 2-day workshop for UIU faculty and postgraduate students focusing on effective grant proposal writing. Event date marks the start date.",
+    "eventDate": "2025-12-01T00:00:00Z",
+    "startTime": "09:30",
+    "endTime": "16:30",
+    "timeZone": "Asia/Dhaka",
+    "location": {
+      "type": "Physical",
+      "room": "UIU Training Room A, Permanent Campus",
+      "building": "United International University",
+      "virtualPlatform": null,
+      "joinLink": null
+    },
+    "registration": {
+      "required": true,
+      "link": "https://events.uiu.ac.bd/register/research-grant-workshop",
+      "deadline": "2025-11-15T23:59:59Z"
+    },
+    "organizer": "UIU Directorate of Research & Development (DRD)",
+    "speakers": [],
+    "eventType": "Workshop",
+    "tags": ["research methodology", "grant writing", "academic", "uiu"],
+    "status": "Scheduled",
+    "createdAt": "2025-07-20T12:00:00Z",
+    "updatedAt": "2025-07-22T10:00:00Z"
+  },
+  {
+    "title": "Cancelled: UIU Debate Competition on Tech Ethics",
+    "description": "Inter-departmental debate competition on the ethical implications of emerging technologies. This event has been cancelled due to unavoidable circumstances.",
+    "eventDate": "2025-09-25T00:00:00Z",
+    "startTime": "15:00",
+    "endTime": "16:30",
+    "timeZone": "Asia/Dhaka",
+    "location": {
+      "type": "Physical",
+      "room": "UIU Smart Room 101",
+      "building": "United International University",
+      "virtualPlatform": null,
+      "joinLink": null
+    },
+    "registration": {
+      "required": true,
+      "link": "https://events.uiu.ac.bd/register/tech-ethics-debate",
+      "deadline": "2025-09-20T23:59:59Z"
+    },
+    "organizer": "UIU Debating Club",
+    "speakers": [],
+    "eventType": "Competition",
+    "tags": ["debate", "tech ethics", "student activity", "uiu"],
+    "status": "Cancelled",
+    "createdAt": "2025-04-10T14:00:00Z",
+    "updatedAt": "2025-08-30T10:00:00Z"
+  },
+  {
+    "title": "UIU Robotics Club: Weekly Project Showcase",
+    "description": "Regular meeting for the UIU Robotics Club to showcase ongoing projects, discuss challenges, and plan for upcoming competitions.",
+    "eventDate": "2025-10-07T00:00:00Z",
+    "startTime": "16:00",
+    "endTime": "17:00",
+    "timeZone": "Asia/Dhaka",
+    "location": {
+      "type": "Physical",
+      "room": "Robotics Lab, UIU Permanent Campus",
+      "building": "United International University",
+      "virtualPlatform": null,
+      "joinLink": null
+    },
+    "registration": {
+      "required": false,
+      "link": null,
+      "deadline": null
+    },
+    "organizer": "UIU Robotics Club",
+    "speakers": [],
+    "eventType": "Club Meeting",
+    "tags": ["robotics", "student club", "project showcase", "uiu"],
+    "status": "Scheduled",
+    "createdAt": "2025-01-01T00:00:00Z",
+    "updatedAt": "2025-09-30T12:00:00Z"
+  },
+  {
+    "title": "UIU EEE Department: Final Year Project Exhibition 2026",
+    "description": "An opportunity for final year students of the UIU EEE Department to present their capstone projects. Industry experts invited.",
+    "eventDate": "2026-03-12T00:00:00Z",
+    "startTime": "10:00",
+    "endTime": "17:00",
+    "timeZone": "Asia/Dhaka",
+    "location": {
+      "type": "Physical",
+      "room": "UIU Exhibition Hall, Permanent Campus",
+      "building": "United International University",
+      "virtualPlatform": null,
+      "joinLink": null
+    },
+    "registration": {
+      "required": false,
+      "link": "https://events.uiu.ac.bd/eee-project-exhibition-2026",
+      "deadline": null
+    },
+    "organizer": "UIU Department of Electrical and Electronic Engineering (EEE)",
+    "speakers": [],
+    "eventType": "Exhibition",
+    "tags": ["EEE", "final year project", "student exhibition", "engineering", "uiu"],
+    "status": "Scheduled",
+    "createdAt": "2025-08-01T10:00:00Z",
+    "updatedAt": "2025-08-05T14:30:00Z"
+  },
+  {
+    "title": "Book Launch at UIU: 'Cybersecurity in the Age of IoT' by Prof. Mehedi Hasan",
+    "description": "Join UIU Prof. Mehedi Hasan for the launch of his new book, followed by a Q&A session on modern cybersecurity challenges.",
+    "eventDate": "2025-11-28T00:00:00Z",
+    "startTime": "18:00",
+    "endTime": "19:30",
+    "timeZone": "Asia/Dhaka",
+    "location": {
+      "type": "Hybrid",
+      "room": "UIU Library Seminar Hall",
+      "building": "United International University",
+      "virtualPlatform": "UIU Facebook Live",
+      "joinLink": "https://facebook.com/UIUOofficial/live"
+    },
+    "registration": {
+      "required": false,
+      "link": "https://events.uiu.ac.bd/reminders/cybersecurity-book-launch",
+      "deadline": null
+    },
+    "organizer": "UIU Press & Department of CSE",
+    "speakers": [
+      {
+        "name": "Prof. Mehedi Hasan",
+        "affiliation": "Author, Department of CSE, UIU",
+        "topic": "Key Insights from 'Cybersecurity in the Age of IoT'"
+      }
+    ],
+    "eventType": "Book Launch",
+    "tags": ["book launch", "cybersecurity", "IoT", "author talk", "uiu"],
+    "status": "Scheduled",
+    "createdAt": "2025-09-01T09:00:00Z",
+    "updatedAt": "2025-09-05T11:00:00Z"
+  }
+]

@@ -1,0 +1,522 @@
+[
+  {
+    "_id": { "$oid": "6656d4b4f7e5b8c9a0a1b2c3" },
+    "basic_info": {
+      "name": "Aarav Rahman",
+      "profile_image_url": "https://university.edu/path/to/aarav_rahman.jpg"
+    },
+    "contact_info": {
+      "primary_email": "aarav.bscse@university.edu"
+    },
+    "academic_info": {
+      "student_id_components": {
+        "program_name": "Bachelor of Science in Computer Science & Engineering",
+        "program_code": "011",
+        "admission_year": "23",
+        "admission_trimester": "1",
+        "serial_number": "0001"
+      },
+      "student_id": "0112310001",
+      "department": "Computer Science and Engineering",
+      "faculty": "School of Science & Engineering",
+      "current_status": "Active",
+      "enrollment_date": { "$date": "2023-01-15T00:00:00.000Z" },
+      "expected_graduation_date": { "$date": "2027-01-15T00:00:00.000Z" },
+      "current_year_trimester": "2nd Year, Spring Trimester",
+      "cgpa": 3.75,
+      "current_degree_info": {
+          "degree_level": "Bachelor's",
+          "degree_name": "B.Sc. in Computer Science and Engineering",
+          "institution_name": "United International University",
+          "major_field_of_study": "Computer Science and Engineering",
+          "start_date": { "$date": "2023-01-15T00:00:00.000Z" }
+      },
+      "thesis_info": null
+    },
+    "university_research_profile": {
+      "research_interests": ["Machine Learning", "Cybersecurity"],
+      "skills_expertise": ["Python", "Network Analysis", "Java"],
+      "university_publications": [],
+      "university_projects": [{ "$oid": "PROJECT_ID_ALPHA" }]
+    },
+    "platform_settings": {
+      "user_role": "student",
+      "account_creation_date": { "$date": "2023-01-10T00:00:00.000Z" },
+      "last_updated_date": { "$date": "2025-05-28T00:00:00.000Z" }
+    }
+  },
+  {
+    "_id": { "$oid": "6656d4b4f7e5b8c9a0a1b2c4" },
+    "basic_info": {
+      "name": "Fatima Chowdhury",
+      "profile_image_url": "https://university.edu/path/to/fatima_chowdhury.jpg"
+    },
+    "contact_info": {
+      "primary_email": "fatima.bba@university.edu"
+    },
+    "academic_info": {
+      "student_id_components": {
+        "program_name": "Bachelor of Business Administration",
+        "program_code": "021",
+        "admission_year": "22",
+        "admission_trimester": "3",
+        "serial_number": "0015"
+      },
+      "student_id": "0212230015",
+      "department": "Business Administration",
+      "faculty": "School of Business & Economics",
+      "current_status": "Active",
+      "enrollment_date": { "$date": "2022-09-01T00:00:00.000Z" },
+      "expected_graduation_date": { "$date": "2026-09-01T00:00:00.000Z" },
+      "current_year_trimester": "3rd Year, Fall Trimester",
+      "cgpa": 3.88,
+      "current_degree_info": {
+          "degree_level": "Bachelor's",
+          "degree_name": "Bachelor of Business Administration",
+          "institution_name": "United International University",
+          "major_field_of_study": "Marketing",
+          "start_date": { "$date": "2022-09-01T00:00:00.000Z" }
+      },
+      "thesis_info": {
+        "title": "Impact of Social Media Marketing on Consumer Behavior",
+        "supervisor_name": "Dr. Ibrahim Khan",
+        "supervisor_id": { "$oid": "FACULTY_ID_001" },
+        "status": "In Progress",
+        "description": "Analyzing the effects of social media campaigns on purchasing decisions in Bangladesh."
+      }
+    },
+    "university_research_profile": {
+      "research_interests": ["Digital Marketing", "Consumer Psychology"],
+      "skills_expertise": ["Market Research", "SPSS", "Content Creation"],
+      "university_publications": [
+        {
+          "title": "Emerging Trends in Digital Advertising in South Asia",
+          "authors": ["Fatima Chowdhury", "Dr. Ibrahim Khan"],
+          "publication_type": "Conference Paper",
+          "venue_or_journal_name": "UIU Business Review",
+          "publication_date": { "$date": "2024-11-10T00:00:00.000Z" },
+          "doi_url": "https://doi.org/10.xxxx/uiubr.2024.xxxx",
+          "paper_url": "https://repository.university.edu/path/to/paper1.pdf",
+          "status": "Published",
+          "abstract": "A review of current digital advertising strategies and their effectiveness."
+        }
+      ],
+      "university_projects": [{ "$oid": "PROJECT_ID_BETA" }]
+    },
+    "platform_settings": {
+      "user_role": "student",
+      "account_creation_date": { "$date": "2022-08-25T00:00:00.000Z" },
+      "last_updated_date": { "$date": "2025-05-20T00:00:00.000Z" }
+    }
+  },
+  {
+    "_id": { "$oid": "6656d4b4f7e5b8c9a0a1b2c5" },
+    "basic_info": {
+      "name": "Zayan Ahmed",
+      "profile_image_url": "https://university.edu/path/to/zayan_ahmed.jpg"
+    },
+    "contact_info": {
+      "primary_email": "zayan.bseee@university.edu"
+    },
+    "academic_info": {
+      "student_id_components": {
+        "program_name": "Bachelor of Science in Electrical & Electronic Engineering",
+        "program_code": "012",
+        "admission_year": "24",
+        "admission_trimester": "1",
+        "serial_number": "0005"
+      },
+      "student_id": "0122410005",
+      "department": "Electrical & Electronic Engineering",
+      "faculty": "School of Science & Engineering",
+      "current_status": "Active",
+      "enrollment_date": { "$date": "2024-01-15T00:00:00.000Z" },
+      "expected_graduation_date": { "$date": "2028-01-15T00:00:00.000Z" },
+      "current_year_trimester": "1st Year, Spring Trimester",
+      "cgpa": null,
+      "current_degree_info": {
+          "degree_level": "Bachelor's",
+          "degree_name": "B.Sc. in Electrical & Electronic Engineering",
+          "institution_name": "United International University",
+          "major_field_of_study": "Electrical & Electronic Engineering",
+          "start_date": { "$date": "2024-01-15T00:00:00.000Z" }
+      },
+      "thesis_info": null
+    },
+    "university_research_profile": {
+      "research_interests": ["Renewable Energy", "Power Systems"],
+      "skills_expertise": ["Circuit Design", "MATLAB", "AutoCAD Electrical"],
+      "university_publications": [],
+      "university_projects": []
+    },
+    "platform_settings": {
+      "user_role": "student",
+      "account_creation_date": { "$date": "2024-01-10T00:00:00.000Z" },
+      "last_updated_date": { "$date": "2025-04-15T00:00:00.000Z" }
+    }
+  },
+  {
+    "_id": { "$oid": "6656d4b4f7e5b8c9a0a1b2c6" },
+    "basic_info": {
+      "name": "Nadia Islam",
+      "profile_image_url": "https://university.edu/path/to/nadia_islam.jpg"
+    },
+    "contact_info": {
+      "primary_email": "nadia.bsds@university.edu"
+    },
+    "academic_info": {
+      "student_id_components": {
+        "program_name": "Bachelor of Science in Data Science",
+        "program_code": "031",
+        "admission_year": "23",
+        "admission_trimester": "2",
+        "serial_number": "0003"
+      },
+      "student_id": "0312320003",
+      "department": "Data Science",
+      "faculty": "School of Science & Engineering",
+      "current_status": "Active",
+      "enrollment_date": { "$date": "2023-05-10T00:00:00.000Z" },
+      "expected_graduation_date": { "$date": "2027-05-10T00:00:00.000Z" },
+      "current_year_trimester": "2nd Year, Summer Trimester",
+      "cgpa": 3.92,
+      "current_degree_info": {
+          "degree_level": "Bachelor's",
+          "degree_name": "B.Sc. in Data Science",
+          "institution_name": "United International University",
+          "major_field_of_study": "Data Science",
+          "start_date": { "$date": "2023-05-10T00:00:00.000Z" }
+      },
+      "thesis_info": {
+        "title": "Predictive Modeling for Student Performance",
+        "supervisor_name": "Dr. Anika Haque",
+        "supervisor_id": { "$oid": "FACULTY_ID_002" },
+        "status": "Proposed",
+        "description": "Developing a machine learning model to predict academic success based on various factors."
+      }
+    },
+    "university_research_profile": {
+      "research_interests": ["Predictive Analytics", "Big Data", "Natural Language Processing"],
+      "skills_expertise": ["R", "Python", "SQL", "Tableau"],
+      "university_publications": [],
+      "university_projects": [{ "$oid": "PROJECT_ID_GAMMA" }]
+    },
+    "platform_settings": {
+      "user_role": "student",
+      "account_creation_date": { "$date": "2023-05-01T00:00:00.000Z" },
+      "last_updated_date": { "$date": "2025-05-25T00:00:00.000Z" }
+    }
+  },
+  {
+    "_id": { "$oid": "6656d4b4f7e5b8c9a0a1b2c7" },
+    "basic_info": {
+      "name": "Rohan Mahmud",
+      "profile_image_url": "https://university.edu/path/to/rohan_mahmud.jpg"
+    },
+    "contact_info": {
+      "primary_email": "rohan.bsce@university.edu"
+    },
+    "academic_info": {
+      "student_id_components": {
+        "program_name": "Bachelor of Science in Civil Engineering",
+        "program_code": "041",
+        "admission_year": "22",
+        "admission_trimester": "1",
+        "serial_number": "0008"
+      },
+      "student_id": "0412210008",
+      "department": "Civil Engineering",
+      "faculty": "School of Science & Engineering",
+      "current_status": "Active",
+      "enrollment_date": { "$date": "2022-01-15T00:00:00.000Z" },
+      "expected_graduation_date": { "$date": "2026-01-15T00:00:00.000Z" },
+      "current_year_trimester": "3rd Year, Spring Trimester",
+      "cgpa": 3.65,
+      "current_degree_info": {
+          "degree_level": "Bachelor's",
+          "degree_name": "B.Sc. in Civil Engineering",
+          "institution_name": "United International University",
+          "major_field_of_study": "Civil Engineering",
+          "start_date": { "$date": "2022-01-15T00:00:00.000Z" }
+      },
+      "thesis_info": null
+    },
+    "university_research_profile": {
+      "research_interests": ["Structural Engineering", "Sustainable Construction"],
+      "skills_expertise": ["AutoCAD", "STAAD.Pro", "Project Management"],
+      "university_publications": [],
+      "university_projects": [{ "$oid": "PROJECT_ID_DELTA" }]
+    },
+    "platform_settings": {
+      "user_role": "student",
+      "account_creation_date": { "$date": "2022-01-10T00:00:00.000Z" },
+      "last_updated_date": { "$date": "2025-03-10T00:00:00.000Z" }
+    }
+  },
+  {
+    "_id": { "$oid": "6656d4b4f7e5b8c9a0a1b2c8" },
+    "basic_info": {
+      "name": "Sadia Akter",
+      "profile_image_url": "https://university.edu/path/to/sadia_akter.jpg"
+    },
+    "contact_info": {
+      "primary_email": "sadia.bscse@university.edu"
+    },
+    "academic_info": {
+      "student_id_components": {
+        "program_name": "Bachelor of Science in Computer Science & Engineering",
+        "program_code": "011",
+        "admission_year": "23",
+        "admission_trimester": "3",
+        "serial_number": "0022"
+      },
+      "student_id": "0112330022",
+      "department": "Computer Science and Engineering",
+      "faculty": "School of Science & Engineering",
+      "current_status": "Active",
+      "enrollment_date": { "$date": "2023-09-01T00:00:00.000Z" },
+      "expected_graduation_date": { "$date": "2027-09-01T00:00:00.000Z" },
+      "current_year_trimester": "2nd Year, Fall Trimester",
+      "cgpa": 3.80,
+      "current_degree_info": {
+          "degree_level": "Bachelor's",
+          "degree_name": "B.Sc. in Computer Science and Engineering",
+          "institution_name": "United International University",
+          "major_field_of_study": "Software Engineering",
+          "start_date": { "$date": "2023-09-01T00:00:00.000Z" }
+      },
+      "thesis_info": null
+    },
+    "university_research_profile": {
+      "research_interests": ["Software Development", "Web Technologies", "AI Ethics"],
+      "skills_expertise": ["JavaScript", "React", "Node.js", "MongoDB"],
+      "university_publications": [],
+      "university_projects": []
+    },
+    "platform_settings": {
+      "user_role": "student",
+      "account_creation_date": { "$date": "2023-08-28T00:00:00.000Z" },
+      "last_updated_date": { "$date": "2025-05-01T00:00:00.000Z" }
+    }
+  },
+  {
+    "_id": { "$oid": "6656d4b4f7e5b8c9a0a1b2c9" },
+    "basic_info": {
+      "name": "Imran Hasan",
+      "profile_image_url": "https://university.edu/path/to/imran_hasan.jpg"
+    },
+    "contact_info": {
+      "primary_email": "imran.bba@university.edu"
+    },
+    "academic_info": {
+      "student_id_components": {
+        "program_name": "Bachelor of Business Administration",
+        "program_code": "021",
+        "admission_year": "24",
+        "admission_trimester": "1",
+        "serial_number": "0030"
+      },
+      "student_id": "0212410030",
+      "department": "Business Administration",
+      "faculty": "School of Business & Economics",
+      "current_status": "Active",
+      "enrollment_date": { "$date": "2024-01-15T00:00:00.000Z" },
+      "expected_graduation_date": { "$date": "2028-01-15T00:00:00.000Z" },
+      "current_year_trimester": "1st Year, Spring Trimester",
+      "cgpa": null,
+      "current_degree_info": {
+          "degree_level": "Bachelor's",
+          "degree_name": "Bachelor of Business Administration",
+          "institution_name": "United International University",
+          "major_field_of_study": "Finance",
+          "start_date": { "$date": "2024-01-15T00:00:00.000Z" }
+      },
+      "thesis_info": null
+    },
+    "university_research_profile": {
+      "research_interests": ["Financial Markets", "Investment Analysis"],
+      "skills_expertise": ["Financial Modeling", "Excel", "Bloomberg Terminal (Basic)"],
+      "university_publications": [],
+      "university_projects": []
+    },
+    "platform_settings": {
+      "user_role": "student",
+      "account_creation_date": { "$date": "2024-01-12T00:00:00.000Z" },
+      "last_updated_date": { "$date": "2025-02-20T00:00:00.000Z" }
+    }
+  },
+  {
+    "_id": { "$oid": "6656d4b4f7e5b8c9a0a1b2ca" },
+    "basic_info": {
+      "name": "Ayesha Siddika",
+      "profile_image_url": "https://university.edu/path/to/ayesha_siddika.jpg"
+    },
+    "contact_info": {
+      "primary_email": "ayesha.bseee@university.edu"
+    },
+    "academic_info": {
+      "student_id_components": {
+        "program_name": "Bachelor of Science in Electrical & Electronic Engineering",
+        "program_code": "012",
+        "admission_year": "22",
+        "admission_trimester": "2",
+        "serial_number": "0011"
+      },
+      "student_id": "0122220011",
+      "department": "Electrical & Electronic Engineering",
+      "faculty": "School of Science & Engineering",
+      "current_status": "Active",
+      "enrollment_date": { "$date": "2022-05-10T00:00:00.000Z" },
+      "expected_graduation_date": { "$date": "2026-05-10T00:00:00.000Z" },
+      "current_year_trimester": "3rd Year, Summer Trimester",
+      "cgpa": 3.70,
+      "current_degree_info": {
+          "degree_level": "Bachelor's",
+          "degree_name": "B.Sc. in Electrical & Electronic Engineering",
+          "institution_name": "United International University",
+          "major_field_of_study": "Telecommunications",
+          "start_date": { "$date": "2022-05-10T00:00:00.000Z" }
+      },
+      "thesis_info": {
+          "title": "Optimization of 5G Network Performance in Urban Areas",
+          "supervisor_name": "Dr. Farhan Kabir",
+          "supervisor_id": { "$oid": "FACULTY_ID_003" },
+          "status": "Completed",
+          "description": "Investigating methods to enhance 5G signal strength and reduce latency."
+      }
+    },
+    "university_research_profile": {
+      "research_interests": ["Wireless Communication", "IoT", "Signal Processing"],
+      "skills_expertise": ["Network Simulation (NS-3)", "Antenna Design", "Python"],
+       "university_publications": [
+        {
+          "title": "A Novel Antenna Design for Enhanced 5G Coverage",
+          "authors": ["Ayesha Siddika", "Dr. Farhan Kabir"],
+          "publication_type": "Journal Article",
+          "venue_or_journal_name": "IEEE Transactions on Antennas and Propagation",
+          "publication_date": { "$date": "2025-03-15T00:00:00.000Z" },
+          "doi_url": "https://doi.org/10.xxxx/tap.2025.xxxx",
+          "paper_url": "https://repository.university.edu/path/to/paper2.pdf",
+          "status": "Published",
+          "abstract": "Details of a new compact antenna for 5G base stations."
+        }
+      ],
+      "university_projects": [{ "$oid": "PROJECT_ID_EPSILON" }]
+    },
+    "platform_settings": {
+      "user_role": "student",
+      "account_creation_date": { "$date": "2022-05-05T00:00:00.000Z" },
+      "last_updated_date": { "$date": "2025-05-15T00:00:00.000Z" }
+    }
+  },
+  {
+    "_id": { "$oid": "6656d4b4f7e5b8c9a0a1b2cb" },
+    "basic_info": {
+      "name": "Tanvir Hossain",
+      "profile_image_url": "https://university.edu/path/to/tanvir_hossain.jpg"
+    },
+    "contact_info": {
+      "primary_email": "tanvir.bsds@university.edu"
+    },
+    "academic_info": {
+      "student_id_components": {
+        "program_name": "Bachelor of Science in Data Science",
+        "program_code": "031",
+        "admission_year": "24",
+        "admission_trimester": "1",
+        "serial_number": "0007"
+      },
+      "student_id": "0312410007",
+      "department": "Data Science",
+      "faculty": "School of Science & Engineering",
+      "current_status": "Active",
+      "enrollment_date": { "$date": "2024-01-15T00:00:00.000Z" },
+      "expected_graduation_date": { "$date": "2028-01-15T00:00:00.000Z" },
+      "current_year_trimester": "1st Year, Spring Trimester",
+      "cgpa": null,
+      "current_degree_info": {
+          "degree_level": "Bachelor's",
+          "degree_name": "B.Sc. in Data Science",
+          "institution_name": "United International University",
+          "major_field_of_study": "Data Science",
+          "start_date": { "$date": "2024-01-15T00:00:00.000Z" }
+      },
+      "thesis_info": null
+    },
+    "university_research_profile": {
+      "research_interests": ["Machine Learning Operations (MLOps)", "Cloud Computing for Data Science"],
+      "skills_expertise": ["Docker", "Kubernetes (Basic)", "AWS Sagemaker (Learning)"],
+      "university_publications": [],
+      "university_projects": []
+    },
+    "platform_settings": {
+      "user_role": "student",
+      "account_creation_date": { "$date": "2024-01-11T00:00:00.000Z" },
+      "last_updated_date": { "$date": "2025-01-20T00:00:00.000Z" }
+    }
+  },
+  {
+    "_id": { "$oid": "6656d4b4f7e5b8c9a0a1b2cc" },
+    "basic_info": {
+      "name": "Mehnaz Kabir",
+      "profile_image_url": "https://university.edu/path/to/mehnaz_kabir.jpg"
+    },
+    "contact_info": {
+      "primary_email": "mehnaz.bscse@university.edu"
+    },
+    "academic_info": {
+      "student_id_components": {
+        "program_name": "Bachelor of Science in Computer Science & Engineering",
+        "program_code": "011",
+        "admission_year": "22",
+        "admission_trimester": "3",
+        "serial_number": "0045"
+      },
+      "student_id": "0112230045",
+      "department": "Computer Science and Engineering",
+      "faculty": "School of Science & Engineering",
+      "current_status": "Graduated",
+      "enrollment_date": { "$date": "2022-09-01T00:00:00.000Z" },
+      "expected_graduation_date": { "$date": "2026-09-01T00:00:00.000Z" },
+      "current_year_trimester": "Alumnus",
+      "cgpa": 3.95,
+      "current_degree_info": {
+          "degree_level": "Bachelor's",
+          "degree_name": "B.Sc. in Computer Science and Engineering",
+          "institution_name": "United International University",
+          "major_field_of_study": "Artificial Intelligence",
+          "start_date": { "$date": "2022-09-01T00:00:00.000Z" }
+      },
+      "thesis_info": {
+          "title": "Explainable AI for Medical Diagnosis",
+          "supervisor_name": "Dr. Sharif Uddin",
+          "supervisor_id": { "$oid": "FACULTY_ID_004" },
+          "status": "Completed",
+          "description": "Developing XAI techniques to improve transparency in AI-driven diagnostic tools."
+      }
+    },
+    "university_research_profile": {
+      "research_interests": ["Explainable AI (XAI)", "Deep Learning", "Medical Imaging"],
+      "skills_expertise": ["Python", "TensorFlow", "Keras", "Medical Data Analysis"],
+      "university_publications": [
+         {
+          "title": "A Framework for Interpretable Deep Learning Models in Healthcare",
+          "authors": ["Mehnaz Kabir", "Dr. Sharif Uddin"],
+          "publication_type": "Journal Article",
+          "venue_or_journal_name": "Journal of Biomedical Informatics",
+          "publication_date": { "$date": "2026-07-22T00:00:00.000Z" },
+          "doi_url": "https://doi.org/10.xxxx/jbi.2026.xxxx",
+          "paper_url": "https://repository.university.edu/path/to/paper3.pdf",
+          "status": "Published",
+          "abstract": "Proposing a novel framework for building more transparent AI models for medical applications."
+        }
+      ],
+      "university_projects": [{ "$oid": "PROJECT_ID_ZETA" }]
+    },
+    "platform_settings": {
+      "user_role": "alumnus",
+      "account_creation_date": { "$date": "2022-08-29T00:00:00.000Z" },
+      "last_updated_date": { "$date": "2026-10-01T00:00:00.000Z" }
+    }
+  }
+]

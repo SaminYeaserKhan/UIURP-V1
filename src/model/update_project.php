@@ -4,9 +4,13 @@ require_once __DIR__ . '/../../vendor/autoload.php';
 
 // We're importing classes directly without hints to avoid linter issues
 use MongoDB\Client;
+use MongoDB\BSON\UTCDateTime;
+use MongoDB\BSON\ObjectId;
 
-// Comment out session-related code
-// session_start();
+// Start session to capture user data if available
+session_start();
+
+// Session logging removed
 
 header('Content-Type: application/json');
 
@@ -16,8 +20,8 @@ header('Content-Type: application/json');
 //     exit;
 // }
 
-// Enable debug mode
-$DEBUG = true;
+// Debug mode disabled
+$DEBUG = false;
 
 // Check if project ID is provided
 if (!isset($_POST['project_id']) || empty($_POST['project_id'])) {
@@ -25,56 +29,52 @@ if (!isset($_POST['project_id']) || empty($_POST['project_id'])) {
     exit;
 }
 
-if ($DEBUG) {
-    // Log all POST data (for debugging)
-    $logFile = __DIR__ . '/../../logs/update_project_debug.log';
-    if (!file_exists(dirname($logFile))) {
-        mkdir(dirname($logFile), 0777, true);
-    }
-    $logData = date('Y-m-d H:i:s') . ' - POST data: ' . print_r($_POST, true);
-    file_put_contents($logFile, $logData, FILE_APPEND);
-    
-    // Specifically log the privacy field for debugging
-    $privacyValue = isset($_POST['privacy']) ? "'" . $_POST['privacy'] . "'" : 'not set';
-    $privacyType = isset($_POST['privacy']) ? gettype($_POST['privacy']) : 'N/A';
-    $logData = date('Y-m-d H:i:s') . " - Privacy field: value=$privacyValue, type=$privacyType\n";
-    file_put_contents($logFile, $logData, FILE_APPEND);
-}
-
 $projectId = $_POST['project_id'];
-// Use a dummy user ID since we're bypassing authentication
+// Get the user ID from session
+$userId = null;
+if (isset($_SESSION['user_id'])) {
+    $userId = $_SESSION['user_id'];
+} elseif (isset($_SESSION['user_data']) && isset($_SESSION['user_data']['_id']) && isset($_SESSION['user_data']['_id']['$oid'])) {
+    // Try to get ID from user_data if available
+    $userId = $_SESSION['user_data']['_id']['$oid'];
+} elseif (isset($_SESSION['user_data']) && isset($_SESSION['user_data']['_id'])) {
+    // Fall back to string representation of ID if present
+    $userId = (string)$_SESSION['user_data']['_id'];
+}
+// Default to a dummy ID if none found
+if (!$userId) {
 $userId = '000000000000000000000000';
-
-// Check required fields - with improved validation
-$requiredFields = ['title', 'field'];
-$missingFields = [];
-
-foreach ($requiredFields as $field) {
-    if (!isset($_POST[$field]) || empty($_POST[$field])) {
-        $missingFields[] = $field;
-    }
 }
 
-// Special handling for privacy field - accepting '0', 0, '1', 1 as valid values
-// The strict check against '' is important since 0 == '' in PHP
-if (!isset($_POST['privacy']) || ($_POST['privacy'] === '' && $_POST['privacy'] !== '0' && $_POST['privacy'] !== 0)) {
-    $missingFields[] = 'privacy';
+// User ID logging removed
+
+// Check if this is a timeline-only update
+$isTimelineUpdate = isset($_POST['action']) && $_POST['action'] === 'update_timeline';
+
+// Skip required field validation for timeline-only updates
+if (!$isTimelineUpdate) {
+    // Check required fields - with improved validation
+    $requiredFields = ['title', 'field'];
+    $missingFields = [];
     
-    if ($DEBUG) {
-        $privacyStatus = '';
-        if (!isset($_POST['privacy'])) {
-            $privacyStatus = 'Privacy field is not set in the POST data';
-        } else {
-            $privacyStatus = "Privacy field is set but has an empty value: '" . $_POST['privacy'] . "' (type: " . gettype($_POST['privacy']) . ")";
+    foreach ($requiredFields as $field) {
+        if (!isset($_POST[$field]) || empty($_POST[$field])) {
+            $missingFields[] = $field;
         }
-        $logData = date('Y-m-d H:i:s') . " - Privacy field error: $privacyStatus\n";
-        file_put_contents($logFile, $logData, FILE_APPEND);
     }
-}
-
-if (!empty($missingFields)) {
-    echo json_encode(['success' => false, 'message' => 'Missing required fields: ' . implode(', ', $missingFields)]);
-    exit;
+    
+    // Special handling for privacy field - accepting '0', 0, '1', 1 as valid values
+    // The strict check against '' is important since 0 == '' in PHP
+    if (!isset($_POST['privacy']) || ($_POST['privacy'] === '' && $_POST['privacy'] !== '0' && $_POST['privacy'] !== 0)) {
+        $missingFields[] = 'privacy';
+        
+        // Debug logging removed
+    }
+    
+    if (!empty($missingFields)) {
+        echo json_encode(['success' => false, 'message' => 'Missing required fields: ' . implode(', ', $missingFields)]);
+        exit;
+    }
 }
 
 try {
@@ -105,6 +105,43 @@ try {
     if (!$project || !$projectCollection) {
         echo json_encode(['success' => false, 'message' => 'Project not found']);
         exit;
+    }
+    
+    // Process timeline data if this is a timeline update
+    if ($isTimelineUpdate) {
+        // Process timeline data
+        $timeline = [];
+        if (isset($_POST['timeline']) && !empty($_POST['timeline'])) {
+            $timelineData = json_decode($_POST['timeline'], true);
+            if (is_array($timelineData)) {
+                foreach ($timelineData as $item) {
+                    if (isset($item['title']) && !empty($item['title']) && isset($item['date'])) {
+                        $timeline[] = [
+                            'title' => $item['title'],
+                            'description' => isset($item['description']) ? $item['description'] : '',
+                            'date' => $item['date'],
+                            'status' => isset($item['status']) && !empty($item['status']) ? $item['status'] : 'Planned',
+                            'assignedBy' => isset($item['assignedBy']) ? $item['assignedBy'] : '',
+                            'assignedTo' => isset($item['assignedTo']) ? $item['assignedTo'] : ''
+                        ];
+                    }
+                }
+            }
+        }
+        
+        // Update only the timeline field
+        $updateResult = $projectCollection->updateOne(
+            ['_id' => new \MongoDB\BSON\ObjectId($projectId)],
+            ['$set' => ['timeline' => $timeline, 'updatedAt' => new \MongoDB\BSON\UTCDateTime(time() * 1000)]]
+        );
+        
+        if ($updateResult->getModifiedCount() > 0 || $updateResult->getMatchedCount() > 0) {
+            echo json_encode(['success' => true, 'message' => 'Timeline updated successfully']);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Failed to update timeline']);
+        }
+        
+        exit; // Stop here for timeline-only updates
     }
     
     // Parse privacy value correctly
@@ -142,10 +179,53 @@ try {
     // Process supervisor
     $supervisor = [];
     if (isset($_POST['supervisor']) && !empty($_POST['supervisor'])) {
-        $supervisor = [
-            'name' => $_POST['supervisor']
-        ];
+        $supervisorName = $_POST['supervisor'];
+        $supervisorId = !empty($_POST['supervisorId']) ? $_POST['supervisorId'] : null;
+        
+        if ($supervisorId) {
+            // Faculty supervisor with ID - fetch faculty details
+            try {
+                $facultyCollection = $db->faculties;
+                $faculty = $facultyCollection->findOne(['_id' => new ObjectId($supervisorId)]);
+                
+                if ($faculty) {
+                    $supervisor = [
+                        'userId' => ['$oid' => $supervisorId],
+                        'name' => $faculty['name'],
+                        'role' => 'Supervisor'
+                    ];
+                    
+                    // Add additional faculty info if available
+                    if (isset($faculty['email'])) {
+                        $supervisor['email'] = $faculty['email'];
+                    }
+                    if (isset($faculty['department'])) {
+                        $supervisor['department'] = $faculty['department'];
+                    }
+                } else {
+                    // Faculty ID provided but not found - treat as custom supervisor
+                    $supervisor = [
+                        'name' => $supervisorName,
+                        'role' => 'Supervisor'
+                    ];
+                }
+            } catch (Exception $e) {
+                // Error with faculty lookup - treat as custom supervisor
+                error_log("Error looking up faculty supervisor: " . $e->getMessage());
+                $supervisor = [
+                    'name' => $supervisorName,
+                    'role' => 'Supervisor'
+                ];
+            }
+        } else {
+            // Custom supervisor (no ID provided)
+            $supervisor = [
+                'name' => $supervisorName,
+                'role' => 'Supervisor'
+            ];
+        }
     } elseif (isset($project['supervisor'])) {
+        // Keep existing supervisor if no new one provided
         $supervisor = $project['supervisor'];
     }
     
@@ -160,7 +240,9 @@ try {
                         'title' => $item['title'],
                         'description' => isset($item['description']) ? $item['description'] : '',
                         'date' => $item['date'],
-                        'status' => isset($item['status']) && !empty($item['status']) ? $item['status'] : 'Planned'
+                        'status' => isset($item['status']) && !empty($item['status']) ? $item['status'] : 'Planned',
+                        'assignedBy' => isset($item['assignedBy']) ? $item['assignedBy'] : '',
+                        'assignedTo' => isset($item['assignedTo']) ? $item['assignedTo'] : ''
                     ];
                 }
             }
@@ -301,6 +383,72 @@ try {
         }
     }
     
+    // Handle project files uploads
+    $files = isset($project['files']) ? $project['files'] : [];
+    if (isset($_FILES['project_files']) && !empty($_FILES['project_files']['name'][0])) {
+        $uploadDir = __DIR__ . '/../../storage/files/';
+        
+        // Create directory if it doesn't exist
+        if (!file_exists($uploadDir)) {
+            mkdir($uploadDir, 0777, true);
+        }
+        
+        $fileCount = count($_FILES['project_files']['name']);
+        
+        for ($i = 0; $i < $fileCount; $i++) {
+            if ($_FILES['project_files']['error'][$i] === 0) {
+                $filename = $_FILES['project_files']['name'][$i];
+                $fileType = $_FILES['project_files']['type'][$i];
+                $fileSize = $_FILES['project_files']['size'][$i];
+                $fileExtension = pathinfo($filename, PATHINFO_EXTENSION);
+                $newFilename = 'file_' . time() . '_' . uniqid() . '.' . $fileExtension;
+                $targetFile = $uploadDir . $newFilename;
+                
+                if (move_uploaded_file($_FILES['project_files']['tmp_name'][$i], $targetFile)) {
+                    $files[] = [
+                        'name' => $filename,
+                        'path' => '/storage/files/' . $newFilename,
+                        'type' => $fileType,
+                        'size' => $fileSize,
+                        'uploadedAt' => new \MongoDB\BSON\UTCDateTime(time() * 1000)
+                    ];
+                }
+            }
+        }
+    }
+    
+    // Handle media file uploads
+    $media = isset($project['media']) ? $project['media'] : [];
+    if (isset($_FILES['project_media']) && !empty($_FILES['project_media']['name'][0])) {
+        $uploadDir = __DIR__ . '/../../storage/media/';
+        
+        // Create directory if it doesn't exist
+        if (!file_exists($uploadDir)) {
+            mkdir($uploadDir, 0777, true);
+        }
+        
+        $fileCount = count($_FILES['project_media']['name']);
+        
+        for ($i = 0; $i < $fileCount; $i++) {
+            if ($_FILES['project_media']['error'][$i] === 0) {
+                $filename = $_FILES['project_media']['name'][$i];
+                $fileExtension = pathinfo($filename, PATHINFO_EXTENSION);
+                $newFilename = 'media_' . time() . '_' . uniqid() . '.' . $fileExtension;
+                $targetFile = $uploadDir . $newFilename;
+                
+                if (move_uploaded_file($_FILES['project_media']['tmp_name'][$i], $targetFile)) {
+                    $mediaType = strpos($_FILES['project_media']['type'][$i], 'image/') === 0 ? 'image' : 'video';
+                    
+                    $media[] = [
+                        'type' => $mediaType,
+                        'url' => '/storage/media/' . $newFilename,
+                        'caption' => $filename
+                    ];
+                }
+            }
+        }
+    }
+    
     // Get date values
     $createdAt = isset($project['createdAt']) ? $project['createdAt'] : new \MongoDB\BSON\UTCDateTime(time() * 1000);
     if (isset($_POST['created_date']) && !empty($_POST['created_date'])) {
@@ -310,14 +458,27 @@ try {
         }
     }
     
-    $updatedAt = new \MongoDB\BSON\UTCDateTime(time() * 1000);
+    // Preserve the original creator ID
+    // This is important for filtering projects by creator on the project_management.php page
+    $createdBy = isset($project['createdBy']) ? $project['createdBy'] : null;
+    
+        $updatedAt = new \MongoDB\BSON\UTCDateTime(time() * 1000);
     if (isset($_POST['updated_date']) && !empty($_POST['updated_date'])) {
         $updatedTime = strtotime($_POST['updated_date']);
         if ($updatedTime) {
             $updatedAt = new \MongoDB\BSON\UTCDateTime($updatedTime * 1000);
         }
     }
-    
+
+    // Process estimated completion date
+    $estimatedCompletionDate = isset($project['estimatedCompletionDate']) ? $project['estimatedCompletionDate'] : null;
+    if (isset($_POST['estimatedCompletionDate']) && !empty($_POST['estimatedCompletionDate'])) {
+        $estimatedTime = strtotime($_POST['estimatedCompletionDate']);
+        if ($estimatedTime) {
+            $estimatedCompletionDate = new \MongoDB\BSON\UTCDateTime($estimatedTime * 1000);
+        }
+    }
+
     // Update project - use fully-qualified class names to avoid linter issues
     $updateResult = $projectCollection->updateOne(
         ['_id' => new \MongoDB\BSON\ObjectId($projectId)],
@@ -344,8 +505,12 @@ try {
                     'youtube' => isset($_POST['youtube_url']) ? $_POST['youtube_url'] : ''
                 ],
                 'coverImage' => $coverImage,
+                'files' => $files,
+                'media' => $media,
                 'createdAt' => $createdAt,
-                'updatedAt' => $updatedAt
+                'updatedAt' => $updatedAt,
+                'estimatedCompletionDate' => $estimatedCompletionDate,
+                'createdBy' => $createdBy
             ]
         ]
     );

@@ -1,0 +1,332 @@
+/* Performance Optimization CSS */
+
+/* Hardware acceleration for smooth animations */
+.hw-accelerated {
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    perspective: 1000px;
+    will-change: transform, opacity;
+}
+
+.hw-accelerated.complete {
+    will-change: auto;
+}
+
+/* Optimized scroll performance */
+.scroll-container {
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+}
+
+/* Efficient fade animations */
+.fade-optimized {
+    opacity: 0;
+    transform: translate3d(0, 20px, 0);
+    transition: opacity 0.4s ease-out, transform 0.4s ease-out;
+}
+
+.fade-optimized.visible {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+}
+
+/* Lazy loading states */
+.lazy-content {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+}
+
+.lazy-content.loaded {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Optimized image loading */
+img[data-src] {
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out;
+}
+
+img[data-src].loaded,
+img:not([data-src]) {
+    opacity: 1;
+}
+
+/* Skeleton loading states */
+.skeleton {
+    background: linear-gradient(90deg, 
+        rgba(255, 255, 255, 0.1) 25%, 
+        rgba(255, 255, 255, 0.2) 50%, 
+        rgba(255, 255, 255, 0.1) 75%);
+    background-size: 200% 100%;
+    animation: skeleton-loading 1.5s infinite;
+}
+
+@keyframes skeleton-loading {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+/* Mobile performance optimizations */
+@media (max-width: 768px) {
+    /* Disable heavy effects on mobile */
+    .floating-orb,
+    .cyber-grid,
+    .particles-js-canvas-el,
+    .bg-layer-1,
+    .bg-layer-2,
+    .bg-layer-3 {
+        display: none !important;
+    }
+    
+    /* Reduce animation complexity */
+    * {
+        animation-duration: 0.3s !important;
+        transition-duration: 0.3s !important;
+    }
+    
+    /* Disable hover effects on mobile */
+    .card:hover,
+    .btn:hover,
+    .project-card:hover {
+        transform: none !important;
+    }
+    
+    /* Optimize shadows */
+    .card,
+    .project-card,
+    .btn {
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+    }
+    
+    /* Disable complex gradients */
+    .gradient-bg {
+        background: var(--bg-primary) !important;
+    }
+}
+
+/* Low-end device optimizations */
+@media (max-width: 480px) {
+    /* Further reduce effects */
+    .card::before,
+    .card::after,
+    .project-card::before,
+    .project-card::after {
+        display: none !important;
+    }
+    
+    /* Simplify borders */
+    .card,
+    .project-card {
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    }
+    
+    /* Disable blur effects */
+    .backdrop-blur,
+    .glass-effect {
+        backdrop-filter: none !important;
+        background: rgba(0, 0, 0, 0.8) !important;
+    }
+}
+
+/* Reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+    
+    .floating-orb,
+    .particles-js-canvas-el {
+        display: none !important;
+    }
+}
+
+/* High contrast mode optimizations */
+@media (prefers-contrast: high) {
+    .card,
+    .project-card {
+        border: 2px solid currentColor !important;
+        background: var(--bg-primary) !important;
+    }
+    
+    .gradient-text {
+        background: none !important;
+        color: currentColor !important;
+    }
+}
+
+/* Efficient scroll indicators */
+.scroll-indicator {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background: linear-gradient(90deg, var(--primary), var(--accent));
+    transform: scaleX(0);
+    transform-origin: left;
+    z-index: 9999;
+    will-change: transform;
+}
+
+/* Optimized loading states */
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: var(--bg-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    opacity: 1;
+    transition: opacity 0.3s ease-out;
+}
+
+.loading-overlay.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid rgba(255, 255, 255, 0.1);
+    border-top: 3px solid var(--primary);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Efficient card animations */
+.card-optimized {
+    transform: translate3d(0, 0, 0);
+    transition: transform 0.3s ease-out, box-shadow 0.3s ease-out;
+}
+
+.card-optimized:hover {
+    transform: translate3d(0, -5px, 0);
+}
+
+/* Optimized text rendering */
+.text-optimized {
+    text-rendering: optimizeSpeed;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* Efficient grid layouts */
+.grid-optimized {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+    contain: layout style;
+}
+
+/* Memory efficient animations */
+.animate-once {
+    animation-fill-mode: forwards;
+    animation-iteration-count: 1;
+}
+
+.animate-once.complete {
+    animation: none;
+}
+
+/* Optimized backdrop filters */
+.backdrop-optimized {
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+@supports not (backdrop-filter: blur(10px)) {
+    .backdrop-optimized {
+        background: rgba(0, 0, 0, 0.8);
+    }
+}
+
+/* Efficient transforms */
+.transform-optimized {
+    transform: translate3d(0, 0, 0);
+    will-change: transform;
+}
+
+.transform-optimized.idle {
+    will-change: auto;
+}
+
+/* Optimized visibility changes */
+.visibility-optimized {
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease-out, visibility 0.3s ease-out;
+}
+
+.visibility-optimized.visible {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Performance monitoring styles */
+.perf-monitor {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 10px;
+    border-radius: 5px;
+    font-family: monospace;
+    font-size: 12px;
+    z-index: 10000;
+    display: none;
+}
+
+.perf-monitor.visible {
+    display: block;
+}
+
+/* Critical CSS for above-the-fold content */
+.critical-content {
+    contain: layout style paint;
+}
+
+/* Optimized focus states */
+.focus-optimized:focus {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+}
+
+.focus-optimized:focus:not(:focus-visible) {
+    outline: none;
+}
+
+/* Efficient color transitions */
+.color-transition {
+    transition: color 0.2s ease-out, background-color 0.2s ease-out;
+}
+
+/* Optimized z-index management */
+.z-base { z-index: 1; }
+.z-dropdown { z-index: 1000; }
+.z-sticky { z-index: 1020; }
+.z-fixed { z-index: 1030; }
+.z-modal-backdrop { z-index: 1040; }
+.z-modal { z-index: 1050; }
+.z-popover { z-index: 1060; }
+.z-tooltip { z-index: 1070; }
+.z-toast { z-index: 1080; } 

@@ -1,3 +1,117 @@
+﻿<?php
+// Set secure session cookie parameters before session_start()
+$secure = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') || $_SERVER['SERVER_PORT'] == 443;
+$cookieParams = session_get_cookie_params();
+session_set_cookie_params([
+    'lifetime' => $cookieParams['lifetime'],
+    'path' => $cookieParams['path'],
+    'domain' => $cookieParams['domain'],
+    'secure' => $secure, // Only send cookie over HTTPS
+    'httponly' => true,  // Prevent JS access
+    'samesite' => 'Strict' // Prevent CSRF
+]);
+session_start();
+
+// Session idle timeout (30 seconds)
+$timeout = 30; // 30 seconds
+if (isset($_SESSION['LAST_ACTIVITY']) && (time() - $_SESSION['LAST_ACTIVITY'] > $timeout)) {
+    // Save current URL before logout
+    $currentUrl = $_SERVER['REQUEST_URI'];
+    session_unset();
+    session_destroy();
+    header('Location: login.php?timeout=1&redirect=' . urlencode($currentUrl));
+    exit();
+}
+$_SESSION['LAST_ACTIVITY'] = time();
+
+// Show timeout message if redirected due to inactivity
+if (isset($_GET['timeout']) && $_GET['timeout'] == 1) {
+    echo '<div class="alert alert-warning text-center" style="margin: 20px;">Your session has expired due to inactivity. Please log in again.</div>';
+}
+
+// Define a constant to indicate this is the Project_details.php file
+// This is used by included files like timeline_editor_overlay.php
+define('INCLUDED_IN_PROJECT_DETAILS', true);
+
+// Include MongoDB connection
+require __DIR__ . '/vendor/autoload.php';
+
+// Connect to MongoDB
+$client = new MongoDB\Client(require __DIR__ . '/src/config/mongo_uri.php');
+$db = $client->uiurp;
+$studentsCollection = $db->students;
+$facultiesCollection = $db->faculties;
+
+// Import MongoDB BSON classes for ObjectId
+use MongoDB\BSON\ObjectId;
+
+// Helper function to check if a user profile exists and get profile URL
+function getUserProfileInfo($userId, $userType = null) {
+    global $studentsCollection, $facultiesCollection;
+    
+    if (!$userId) {
+        return null;
+    }
+    
+    try {
+        // If userType is specified, check only that collection
+        if ($userType === 'student') {
+            $student = $studentsCollection->findOne(['_id' => new MongoDB\BSON\ObjectId($userId)]);
+            if ($student) {
+                return [
+                    'exists' => true,
+                    'url' => "Student_Profile.php?id=" . $userId,
+                    'type' => 'student'
+                ];
+            }
+        } elseif ($userType === 'faculty') {
+            $faculty = $facultiesCollection->findOne(['_id' => new MongoDB\BSON\ObjectId($userId)]);
+            if ($faculty) {
+                return [
+                    'exists' => true,
+                    'url' => "Faculty_Profile.php?id=" . $userId,
+                    'type' => 'faculty'
+                ];
+            }
+        } else {
+            // Check both collections if type is not specified
+            $student = $studentsCollection->findOne(['_id' => new MongoDB\BSON\ObjectId($userId)]);
+            if ($student) {
+                return [
+                    'exists' => true,
+                    'url' => "Student_Profile.php?id=" . $userId,
+                    'type' => 'student'
+                ];
+            }
+            
+            $faculty = $facultiesCollection->findOne(['_id' => new MongoDB\BSON\ObjectId($userId)]);
+            if ($faculty) {
+                return [
+                    'exists' => true,
+                    'url' => "Faculty_Profile.php?id=" . $userId,
+                    'type' => 'faculty'
+                ];
+            }
+        }
+    } catch (Exception $e) {
+        // Invalid ObjectId or other error
+        return null;
+    }
+    
+    return null;
+}
+
+// Helper function to create clickable name with profile link
+function createProfileLink($name, $userId, $userType = null) {
+    $profileInfo = getUserProfileInfo($userId, $userType);
+    
+    if ($profileInfo && $profileInfo['exists']) {
+        return "<a href='{$profileInfo['url']}' class='profile-link' title='View {$profileInfo['type']} profile'>{$name}</a>";
+    }
+    
+    return $name;
+}
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -7,2072 +121,43 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <link rel="stylesheet" href="assets/styles/home.css">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Poppins:wght@300;400;500;600;700&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
-    <style>
-        :root {
-            --primary-color: #0d6efd;
-            --primary-dark: #0b5ed7;
-            --secondary-color: #6610f2;
-            --accent-color: #fd7e14;
-            --light-bg: #f8f9fa;
-            --dark-bg: #212529;
-            --transition-speed: 0.3s;
-            --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
-            --card-shadow-hover: 0 15px 35px rgba(0, 0, 0, 0.15);
-            --border-radius: 16px;
-            --spacing-sm: 10px;
-            --spacing-md: 20px;
-            --spacing-lg: 30px;
-        }
-        
-        body {
-            font-family: 'Poppins', sans-serif;
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-            background-attachment: fixed;
-            min-height: 100vh;
-            color: #495057;
-            line-height: 1.7;
-        }
-        
-        h1, h2, h3, h4, h5, h6 {
-            font-weight: 600;
-            color: #343a40;
-            letter-spacing: -0.02em;
-        }
-        
-        .project-header {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border-radius: var(--border-radius);
-            padding: calc(var(--spacing-lg) * 1.5);
-            margin-bottom: var(--spacing-lg);
-            border-left: 5px solid var(--primary-color);
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
-            transition: all var(--transition-speed) ease;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .project-header:hover {
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
-            transform: translateY(-5px);
-        }
-        
-        .project-header:before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(135deg, rgba(var(--primary-color-rgb, 13, 110, 253), 0.08) 0%, rgba(var(--secondary-color-rgb, 102, 16, 242), 0.05) 100%);
-            z-index: 0;
-        }
-        
-        .project-header h1 {
-            font-size: 2.5rem;
-            font-weight: 700;
-            background: linear-gradient(120deg, #000000, #333333);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            text-fill-color: transparent;
-            margin-bottom: 0.5rem;
-            position: relative;
-            z-index: 1;
-        }
-        
-        .project-header .meta-item {
-            display: flex;
-            align-items: center;
-            margin-bottom: 0.5rem;
-            position: relative;
-            z-index: 1;
-        }
-        
-        .project-header .meta-item i {
-            color: var(--primary-color);
-            margin-right: 0.5rem;
-            font-size: 1.1rem;
-        }
-        
-        .project-header .status-badge {
-            position: relative;
-            z-index: 1;
-            padding: 0.4rem 1rem;
-            border-radius: 50px;
-            font-weight: 500;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-            display: inline-flex;
-            align-items: center;
-            margin-right: 0.75rem;
-        }
-        
-        .project-header .status-badge i {
-            margin-right: 0.5rem;
-        }
-        
-        .project-header .privacy-toggle {
-            border-radius: 50px;
-            font-weight: 500;
-            padding: 0.4rem 1rem;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-            transition: all 0.3s ease;
-            display: inline-flex;
-            align-items: center;
-        }
-        
-        .project-header .privacy-toggle:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
-        }
-        
-        .project-header .privacy-toggle i {
-            margin-right: 0.5rem;
-        }
-        
-        .project-header .divider {
-            height: 1px;
-            background: linear-gradient(to right, rgba(0,0,0,0.05), rgba(0,0,0,0.1), rgba(0,0,0,0.05));
-            margin: 1.5rem 0;
-            position: relative;
-            z-index: 1;
-        }
-        
-        .project-header .section-row {
-            position: relative;
-            z-index: 1;
-        }
-        
-        .ripple {
-            position: absolute;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.7);
-            transform: scale(0);
-            animation: ripple 0.6s linear;
-            pointer-events: none;
-        }
-        
-        @keyframes ripple {
-            to {
-                transform: scale(2.5);
-                opacity: 0;
-        }
-        }
-        
-        .metadata-card {
-            border-left: 4px solid var(--primary-color);
-            background: rgba(255, 255, 255, 0.9);
-            backdrop-filter: blur(5px);
-            padding: var(--spacing-md);
-            margin-bottom: var(--spacing-md);
-            border-radius: var(--border-radius);
-            box-shadow: var(--card-shadow);
-            transition: all var(--transition-speed) ease;
-        }
-        
-        .metadata-card:hover {
-            box-shadow: var(--card-shadow-hover);
-        }
-        
-        .abstract-box {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border-radius: var(--border-radius);
-            padding: var(--spacing-lg);
-            margin-bottom: var(--spacing-lg);
-            font-style: italic;
-            box-shadow: var(--card-shadow);
-            border-left: 5px solid var(--secondary-color);
-            line-height: 1.8;
-            position: relative;
-            overflow: hidden;
-            transition: all var(--transition-speed) ease;
-        }
-        
-        .abstract-box:hover {
-            box-shadow: var(--card-shadow-hover);
-            transform: translateY(-5px);
-        }
-        
-        .abstract-box::before {
-            content: '"';
-            position: absolute;
-            top: -20px;
-            left: 10px;
-            font-size: 150px;
-            color: rgba(0, 0, 0, 0.03);
-            font-family: 'Georgia', serif;
-            line-height: 1;
-            z-index: 0;
-        }
-        
-        .abstract-box::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            right: 0;
-            width: 100px;
-            height: 100px;
-            background: linear-gradient(135deg, transparent 50%, rgba(var(--secondary-color-rgb, 102, 16, 242), 0.05) 100%);
-            border-radius: 0 0 var(--border-radius) 0;
-            z-index: 0;
-        }
-        
-        .abstract-box h3 {
-            position: relative;
-            z-index: 2;
-            margin-bottom: 20px;
-        }
-        
-        .abstract-box p {
-            position: relative;
-            z-index: 2;
-            font-size: 1.05rem;
-            color: #343a40;
-            margin-bottom: 15px;
-        }
-        
-        .abstract-highlight {
-            color: var(--secondary-color);
-            font-weight: 600;
-        }
-        
-        /* Enhanced timeline styling with more polish */
-        .timeline-container {
-            position: relative;
-            max-width: 1200px;
-            margin: 0 auto;
-            padding-top: 50px;
-            padding-bottom: 60px;
-            overflow: visible;
-        }
-        
-        /* Improved timeline central axis */
-        .timeline-container::after {
-            content: '';
-            position: absolute;
-            width: 6px;
-            background: linear-gradient(to bottom, 
-                var(--primary-color), 
-                var(--secondary-color),
-                var(--accent-color));
-            top: 40px;
-            bottom: 55px; /* Adjust to leave space above the end label */
-            left: 50%;
-            margin-left: -3px;
-            border-radius: 6px;
-            opacity: 0.9;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            animation: gradient-flow 8s ease infinite;
-            background-size: 200% 200%;
-        }
-        
-        /* Animate gradient background of timeline */
-        @keyframes gradient-flow {
-            0% {
-                background-position: 0% 0%;
-            }
-            50% {
-                background-position: 100% 100%;
-            }
-            100% {
-                background-position: 0% 0%;
-            }
-        }
-        
-        .timeline-item {
-            padding: var(--spacing-md) var(--spacing-lg);
-            position: relative;
-            width: 50%;
-            box-sizing: border-box;
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            margin-bottom: calc(var(--spacing-md) * 1.5);
-        }
-        
-        .timeline-item:hover {
-            transform: scale(1.03) translateY(-5px);
-            z-index: 10;
-        }
-        
-        /* Enhanced timeline node styling */
-        .timeline-item::after {
-            content: '';
-            position: absolute;
-            width: 28px;
-            height: 28px;
-            background: white;
-            border: 4px solid;
-            border-color: var(--primary-color);
-            border-radius: 50%;
-            top: 20px;
-            z-index: 10;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
-            transition: all var(--transition-speed) ease;
-        }
-        
-        .timeline-left::after {
-            border-color: var(--primary-color);
-            right: -14px;
-        }
-        
-        .timeline-right::after {
-            border-color: var(--secondary-color);
-            left: -14px;
-        }
-        
-        .timeline-item:hover::after {
-            transform: scale(1.3);
-            box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
-            background: radial-gradient(circle at center, white 60%, rgba(var(--primary-color-rgb, 13, 110, 253), 0.2) 100%);
-        }
-        
-        /* Enhanced timeline connector lines */
-        .timeline-left::before,
-        .timeline-right::before {
-            content: '';
-            position: absolute;
-            top: 30px;
-            width: 40px;
-            height: 4px;
-            background: linear-gradient(to right, transparent, var(--primary-color));
-            z-index: 9;
-            transition: all var(--transition-speed) ease;
-        }
-        
-        .timeline-left::before {
-            right: -40px;
-            background: linear-gradient(to right, transparent, var(--primary-color));
-        }
-        
-        .timeline-right::before {
-            left: -40px;
-            background: linear-gradient(to left, transparent, var(--secondary-color));
-        }
-        
-        .timeline-item:hover::before {
-            width: 50px;
-            height: 6px;
-        }
-        
-        /* Enhanced timeline content styling */
-        .timeline-content {
-            padding: var(--spacing-md) var(--spacing-md);
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: var(--border-radius);
-            box-shadow: var(--card-shadow);
-            transition: all var(--transition-speed) ease;
-            border-top: 4px solid;
-            position: relative;
-            overflow: hidden;
-            backdrop-filter: blur(10px);
-        }
-        
-        .timeline-left .timeline-content {
-            border-top-color: var(--primary-color);
-            transform: translateX(10px);
-            text-align: right;
-        }
-        
-        .timeline-right .timeline-content {
-            border-top-color: var(--secondary-color);
-            transform: translateX(-10px);
-            text-align: left;
-        }
-        
-        .timeline-content:hover {
-            box-shadow: var(--card-shadow-hover);
-            transform: translateY(-3px);
-        }
-        
-        .timeline-left .timeline-content:hover {
-            transform: translateY(-3px) translateX(5px);
-        }
-        
-        .timeline-right .timeline-content:hover {
-            transform: translateY(-3px) translateX(-5px);
-        }
-        
-        .timeline-content::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            right: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(135deg, 
-                rgba(255, 255, 255, 0) 0%, 
-                rgba(255, 255, 255, 0.4) 100%);
-            pointer-events: none;
-        }
-        
-        /* Improved timeline title styling */
-        .timeline-title {
-            display: flex;
-            align-items: center;
-            margin-bottom: 12px;
-            font-weight: 600;
-            font-size: 1.15rem;
-            color: #343a40;
-            position: relative;
-        }
-        
-        .timeline-left .timeline-title {
-            justify-content: flex-end;
-        }
-        
-        .timeline-left .timeline-title .timeline-icon {
-            order: 2;
-            margin-left: 8px;
-            margin-right: 0;
-        }
-        
-        .timeline-right .timeline-title .timeline-icon {
-            margin-right: 8px;
-        }
-        
-        .timeline-title .timeline-icon {
-            font-size: 1rem;
-            color: var(--primary-color);
-            transition: all var(--transition-speed) ease;
-        }
-        
-        .timeline-content:hover .timeline-icon {
-            transform: scale(1.2);
-        }
-        
-        .timeline-right .timeline-title .timeline-icon {
-            color: var(--secondary-color);
-        }
-        
-        /* Enhanced timeline description text and date */
-        .timeline-content p {
-            font-size: 0.95rem;
-            line-height: 1.6;
-            margin-bottom: 0.75rem;
-            color: #495057;
-        }
-        
-        .timeline-date {
-            display: inline-flex;
-            align-items: center;
-            margin-top: 8px;
-            font-size: 0.85rem;
-            color: #6c757d;
-            background: rgba(0, 0, 0, 0.05);
-            padding: 4px 10px;
-            border-radius: 20px;
-            position: relative;
-            font-weight: 500;
-            transition: all var(--transition-speed) ease;
-        }
-        
-        .timeline-content:hover .timeline-date {
-            background: rgba(var(--primary-color-rgb, 13, 110, 253), 0.1);
-            color: var(--primary-color);
-        }
-        
-        .timeline-date i {
-            margin-right: 5px;
-            font-size: 0.9rem;
-        }
-        
-        /* Status badge improvements */
-        .timeline-status {
-            display: inline-flex;
-            align-items: center;
-            padding: 4px 10px;
-            font-size: 0.75rem;
-            border-radius: 20px;
-            margin-left: 8px;
-            font-weight: 500;
-            position: relative;
-            top: -1px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
-            transition: all var(--transition-speed) ease;
-        }
-        
-        .timeline-left .timeline-status {
-            margin-right: 8px;
-            margin-left: 0;
-        }
-        
-        .timeline-content:hover .timeline-status {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
-        }
-        
-        /* Timeline marker label enhancements */
-        .timeline-marker-label {
-            position: absolute;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(255, 255, 255, 0.95);
-            padding: 6px 15px;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
-            z-index: 15;
-            text-align: center;
-            white-space: nowrap;
-            border: 1px solid rgba(0, 0, 0, 0.05);
-            transition: all var(--transition-speed) ease;
-            font-weight: 500;
-        }
-        
-        .timeline-marker-label:hover {
-            transform: translateX(-50%) translateY(-3px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
-        }
-        
-        .timeline-start-label {
-            top: 5px;
-            background: linear-gradient(to right, rgba(255, 255, 255, 0.9), rgba(var(--primary-color-rgb, 13, 110, 253), 0.1));
-            border-color: rgba(var(--primary-color-rgb, 13, 110, 253), 0.2);
-        }
-        
-        .timeline-end-label {
-            bottom: 20px; /* Position it farther from the end of the timeline line */
-            background: linear-gradient(to right, rgba(255, 255, 255, 0.9), rgba(var(--accent-color-rgb, 253, 126, 20), 0.1));
-            border-color: rgba(var(--accent-color-rgb, 253, 126, 20), 0.2);
-            padding-bottom: 8px; /* Add a bit more padding for visual spacing */
-        }
-        
-        /* Improved responsive layout for mobile */
-        @media (max-width: 768px) {
-            .timeline-container::after {
-                left: 31px;
-            }
-            
-            .timeline-item {
-                width: 100%;
-                padding-left: 70px;
-                padding-right: 25px;
-            }
-            
-            .timeline-left::after, 
-            .timeline-right::after {
-                left: 16px;
-            }
-            
-            .timeline-right {
-                left: 0;
-            }
-            
-            .timeline-left::before,
-            .timeline-right::before {
-            width: 25px;
-                top: 30px;
-            }
-            
-            .timeline-left::before {
-                left: 31px;
-                background: linear-gradient(to right, var(--primary-color), transparent);
-            }
-            
-            .timeline-right::before {
-                left: 31px;
-                background: linear-gradient(to right, var(--secondary-color), transparent);
-            }
-            
-            .timeline-left .timeline-content,
-            .timeline-right .timeline-content {
-                text-align: left;
-                transform: none;
-            }
-            
-            .timeline-left .timeline-title {
-                justify-content: flex-start;
-            }
-            
-            .timeline-left .timeline-title .timeline-icon {
-                order: 0;
-                margin-left: 0;
-                margin-right: 8px;
-            }
-            
-            .timeline-left .timeline-status {
-                margin-right: 0;
-                margin-left: 8px;
-            }
-            
-            .timeline-left .timeline-content:hover,
-            .timeline-right .timeline-content:hover {
-                transform: translateY(-3px);
-            }
-            
-            .timeline-marker-label {
-                left: 31px;
-                transform: translateX(0);
-                padding: 4px 10px;
-            }
-            
-            .timeline-marker-label:hover {
-                transform: translateX(0) translateY(-3px);
-            }
-            
-            .timeline-start-label {
-                top: 45px;
-            }
-            
-            .timeline-end-label {
-                bottom: 20px;
-                left: 60px; /* Move it even further to the right to avoid overlapping */
-                transform: translateX(0);
-            }
-            
-            .timeline-container::before {
-                left: 31px;
-                margin-left: 0;
-            }
-            
-            .timeline-end-marker {
-                left: 31px;
-                margin-left: 0;
-            }
-        }
-        
-        .timeline-end-marker {
-            display: none; /* Hide the end marker instead of removing it completely to avoid breaking code */
-        }
-        
-        /* Pulsing animation for timeline markers */
-        @keyframes pulse-glow {
-            0% {
-                box-shadow: 0 0 10px rgba(var(--primary-color-rgb, 13, 110, 253), 0.5);
-                transform: scale(1);
-            }
-            50% {
-                box-shadow: 0 0 20px rgba(var(--primary-color-rgb, 13, 110, 253), 0.8);
-                transform: scale(1.1);
-            }
-            100% {
-                box-shadow: 0 0 10px rgba(var(--primary-color-rgb, 13, 110, 253), 0.5);
-                transform: scale(1);
-            }
-        }
-        
-        .timeline-item {
-            padding: var(--spacing-md) var(--spacing-lg);
-            position: relative;
-            width: 50%;
-            box-sizing: border-box;
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            margin-bottom: calc(var(--spacing-md) * 1.5);
-        }
-        
-        .timeline-item:hover {
-            transform: scale(1.03) translateY(-5px);
-            z-index: 2;
-        }
-        
-        .timeline-item::after {
-            content: '';
-            position: absolute;
-            width: 28px;
-            height: 28px;
-            background: #ffffff;
-            border: 4px solid;
-            border-color: var(--primary-color);
-            border-radius: 50%;
-            top: 20px;
-            z-index: 1;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
-            transition: all var(--transition-speed) ease;
-        }
-        
-        .timeline-left::after {
-            border-color: var(--primary-color);
-            right: -14px;
-        }
-        
-        .timeline-right::after {
-            border-color: var(--secondary-color);
-            left: -14px;
-        }
-        
-        .timeline-item:hover::after {
-            transform: scale(1.3);
-            box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
-            background: radial-gradient(circle at center, white 60%, rgba(var(--primary-color-rgb, 13, 110, 253), 0.2) 100%);
-        }
-        
-        .timeline-left:hover::after {
-            background-color: rgba(var(--primary-color-rgb, 13, 110, 253), 0.1);
-        }
-        
-        .timeline-right:hover::after {
-            background-color: rgba(var(--secondary-color-rgb, 102, 16, 242), 0.1);
-        }
-        
-        .timeline-left {
-            left: 0;
-        }
-        
-        .timeline-right {
-            left: 50%;
-        }
-        
-        /* Timeline connector lines */
-        .timeline-left::before,
-        .timeline-right::before {
-            content: '';
-            position: absolute;
-            top: 30px;
-            width: 40px;
-            height: 4px;
-            background: linear-gradient(to right, transparent, var(--primary-color));
-            z-index: 3;
-        }
-        
-        .timeline-left::before {
-            right: -40px;
-            background: linear-gradient(to right, transparent, var(--primary-color));
-        }
-        
-        .timeline-right::before {
-            left: -40px;
-            background: linear-gradient(to left, transparent, var(--secondary-color));
-        }
-        
-        .timeline-content {
-            padding: var(--spacing-md) var(--spacing-md);
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: var(--border-radius);
-            box-shadow: var(--card-shadow);
-            transition: all var(--transition-speed) ease;
-            border-top: 4px solid;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .timeline-left .timeline-content {
-            border-top-color: var(--primary-color);
-        }
-        
-        .timeline-right .timeline-content {
-            border-top-color: var(--secondary-color);
-        }
-        
-        .timeline-content:hover {
-            box-shadow: var(--card-shadow-hover);
-            transform: translateY(-3px);
-        }
-        
-        .timeline-content::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            right: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(135deg, 
-                rgba(255, 255, 255, 0) 0%, 
-                rgba(255, 255, 255, 0.4) 100%);
-            pointer-events: none;
-        }
-        
-        .timeline-title {
-            display: flex;
-            align-items: center;
-            margin-bottom: 12px;
-            font-weight: 600;
-            font-size: 1.15rem;
-            color: #343a40;
-            position: relative;
-        }
-        
-        .timeline-title .timeline-icon {
-            margin-right: 8px;
-            font-size: 1rem;
-            color: var(--primary-color);
-        }
-        
-        .timeline-right .timeline-title .timeline-icon {
-            color: var(--secondary-color);
-        }
-        
-        .timeline-date {
-            display: inline-flex;
-            align-items: center;
-            margin-top: 12px;
-            font-size: 0.85rem;
-            color: #6c757d;
-            background: rgba(0, 0, 0, 0.05);
-            padding: 4px 10px;
-            border-radius: 20px;
-        }
-        
-        .timeline-date i {
-            margin-right: 5px;
-            font-size: 0.9rem;
-        }
-        
-        /* Status badge positioning and styling */
-        .timeline-status {
-            display: inline-flex;
-            align-items: center;
-            padding: 4px 10px;
-            font-size: 0.75rem;
-            border-radius: 20px;
-            margin-left: 8px;
-            font-weight: 500;
-            position: relative;
-            top: -1px;
-        }
-        
-        /* For mobile layout */
-        @media (max-width: 768px) {
-            .timeline-container::after {
-                left: 31px;
-            }
-            
-            .timeline-item {
-                width: 100%;
-                padding-left: 70px;
-                padding-right: 25px;
-            }
-            
-            .timeline-left::after, 
-        .timeline-right::after {
-                left: 15px;
-            }
-            
-            .timeline-right {
-                left: 0;
-            }
-            
-            .timeline-left::before,
-            .timeline-right::before {
-                width: 25px;
-                top: 30px;
-        }
-            
-            .timeline-left::before {
-                left: 31px;
-                background: linear-gradient(to right, var(--primary-color), transparent);
-            }
-            
-            .timeline-right::before {
-                left: 31px;
-                background: linear-gradient(to right, var(--secondary-color), transparent);
-            }
-        }
-        
-        .timeline-content {
-            padding: var(--spacing-md);
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: var(--border-radius);
-            box-shadow: var(--card-shadow);
-            transition: all var(--transition-speed) ease;
-        }
-        
-        .timeline-content:hover {
-            box-shadow: var(--card-shadow-hover);
-        }
-        
-        .reference-item {
-            border-left: 3px solid var(--secondary-color);
-            padding: var(--spacing-md);
-            margin-bottom: var(--spacing-md);
-            background: rgba(255, 255, 255, 0.9);
-            backdrop-filter: blur(5px);
-            border-radius: var(--border-radius);
-            box-shadow: var(--card-shadow);
-            transition: all var(--transition-speed) ease;
-        }
-        
-        .reference-item:hover {
-            box-shadow: var(--card-shadow-hover);
-            transform: translateY(-3px);
-            border-left-width: 5px;
-        }
-        
-        .member-card {
-            padding: var(--spacing-md);
-            border-radius: var(--border-radius);
-            margin-bottom: var(--spacing-md);
-            background: rgba(255, 255, 255, 0.9);
-            backdrop-filter: blur(5px);
-            box-shadow: var(--card-shadow);
-            transition: all var(--transition-speed) ease;
-            border-left: 3px solid var(--primary-color);
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .member-card:hover {
-            box-shadow: var(--card-shadow-hover);
-            transform: translateY(-5px);
-            border-left-width: 5px;
-        }
-        
-        .member-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            right: 0;
-            height: 100%;
-            width: 5px;
-            background: linear-gradient(to bottom, transparent, var(--primary-color), transparent);
-            opacity: 0;
-            transition: all var(--transition-speed) ease;
-        }
-        
-        .member-card:hover::before {
-            opacity: 1;
-        }
-        
-        .member-card[data-contribution="0"] {
-            border-left-color: #6c757d;
-        }
-        
-        .member-card[data-contribution="0"]:hover::before {
-            background: linear-gradient(to bottom, transparent, #6c757d, transparent);
-        }
-        
-        .member-card[data-contribution^="7"], 
-        .member-card[data-contribution^="8"], 
-        .member-card[data-contribution^="9"], 
-        .member-card[data-contribution="100"] {
-            border-left-color: #198754;
-        }
-        
-        .member-card[data-contribution^="7"]:hover::before, 
-        .member-card[data-contribution^="8"]:hover::before, 
-        .member-card[data-contribution^="9"]:hover::before, 
-        .member-card[data-contribution="100"]:hover::before {
-            background: linear-gradient(to bottom, transparent, #198754, transparent);
-        }
-        
-        .member-name {
-            display: flex;
-            align-items: center;
-            font-weight: 600;
-            font-size: 1.1rem;
-            margin-bottom: 10px;
-        }
-        
-        .member-role {
-            display: inline-block;
-            padding: 3px 10px;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            margin-bottom: 12px;
-            background: rgba(13, 110, 253, 0.1);
-            color: var(--primary-color);
-            font-weight: 500;
-        }
-        
-        .member-role i {
-            font-size: 0.8rem;
-        }
-        
-        .progress {
-            height: 10px;
-            border-radius: 6px;
-            background-color: rgba(0, 0, 0, 0.05);
-            margin-bottom: 12px;
-            overflow: hidden;
-            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
-        }
-        
-        .progress-bar {
-            background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
-            border-radius: 6px;
-            position: relative;
-            overflow: hidden;
-            transition: width 1.2s ease;
-        }
-        
-        /* Color progression for contribution levels */
-        .progress-bar[aria-valuenow^="1"], 
-        .progress-bar[aria-valuenow^="2"],
-        .progress-bar[aria-valuenow^="3"] {
-            background: linear-gradient(to right, #6c757d, #17a2b8);
-        }
-        
-        .progress-bar[aria-valuenow^="4"], 
-        .progress-bar[aria-valuenow^="5"],
-        .progress-bar[aria-valuenow^="6"] {
-            background: linear-gradient(to right, #17a2b8, #0d6efd);
-        }
-        
-        .progress-bar[aria-valuenow^="7"], 
-        .progress-bar[aria-valuenow^="8"],
-        .progress-bar[aria-valuenow^="9"],
-        .progress-bar[aria-valuenow="100"] {
-            background: linear-gradient(to right, #0d6efd, #198754);
-        }
-        
-        .progress-bar::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            bottom: 0;
-            right: 0;
-            background: linear-gradient(
-                90deg,
-                rgba(255, 255, 255, 0) 0%,
-                rgba(255, 255, 255, 0.2) 50%,
-                rgba(255, 255, 255, 0) 100%
-            );
-            animation: shimmer 2s infinite;
-        }
-        
-        .progress-label {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 6px;
-            font-size: 0.85rem;
-        }
-        
-        .progress-label strong {
-            color: var(--primary-color);
-        }
-        
-        .progress-percentage {
-            font-weight: 600;
-            color: var(--secondary-color);
-        }
-        
-        .contribution-level {
-            font-size: 0.75rem;
-            display: inline-block;
-            padding: 2px 8px;
-            border-radius: 10px;
-            margin-left: 8px;
-            background: rgba(13, 110, 253, 0.1);
-            color: var(--primary-color);
-        }
-        
-        .member-id {
-            display: flex;
-            align-items: center;
-            margin-top: 10px;
-            font-size: 0.8rem;
-            color: #6c757d;
-        }
-        
-        .member-id i {
-            margin-right: 5px;
-            font-size: 0.9rem;
-        }
-        
-        .badge-custom {
-            font-size: 0.85em;
-            padding: 6px 14px;
-            margin-right: 8px;
-            margin-bottom: 8px;
-            border-radius: 50px;
-            transition: all var(--transition-speed) ease;
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            border: none;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-            font-weight: 500;
-            color: white;
-        }
-        
-        .badge-custom:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.15);
-            background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
-        }
-        
-        #project-not-found {
-            display: none;
-            padding: 50px 0;
-            text-align: center;
-        }
-        
-        .loading-spinner {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 300px;
-        }
-        
-        .card {
-            background: rgba(255, 255, 255, 0.9);
-            backdrop-filter: blur(5px);
-            border-radius: var(--border-radius);
-            overflow: hidden;
-            box-shadow: var(--card-shadow);
-            transition: all var(--transition-speed) ease;
-            border: none;
-            margin-bottom: var(--spacing-lg);
-        }
-        
-        .card:hover {
-            box-shadow: var(--card-shadow-hover);
-            transform: translateY(-5px);
-        }
-        
-        .card-header {
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            padding: 15px 20px;
-            border-bottom: none;
-        }
-        
-        .card-header h5 {
-            margin: 0;
-            font-weight: 500;
-        }
-        
-        .card-body {
-            padding: var(--spacing-md);
-        }
-        
-        .progress {
-            height: 10px;
-            border-radius: 6px;
-            background-color: rgba(0, 0, 0, 0.05);
-            margin-bottom: 12px;
-            overflow: hidden;
-            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
-        }
-        
-        .progress-bar {
-            background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
-            border-radius: 6px;
-            position: relative;
-            overflow: hidden;
-            transition: width 1.2s ease;
-        }
-        
-        .progress-bar::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            bottom: 0;
-            right: 0;
-            background: linear-gradient(
-                90deg,
-                rgba(255, 255, 255, 0) 0%,
-                rgba(255, 255, 255, 0.2) 50%,
-                rgba(255, 255, 255, 0) 100%
-            );
-            animation: shimmer 2s infinite;
-        }
-        
-        .progress-label {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 6px;
-            font-size: 0.85rem;
-        }
-        
-        .progress-label strong {
-            color: var(--primary-color);
-        }
-        
-        .progress-percentage {
-            font-weight: 600;
-            color: var(--secondary-color);
-        }
-        
-        .contribution-level {
-            font-size: 0.75rem;
-            display: inline-block;
-            padding: 2px 8px;
-            border-radius: 10px;
-            margin-left: 8px;
-            background: rgba(13, 110, 253, 0.1);
-            color: var(--primary-color);
-        }
-        
-        @keyframes shimmer {
-            0% { transform: translateX(-100%); }
-            100% { transform: translateX(100%); }
-        }
-        
-        .list-group-item {
-            background: transparent;
-            border-color: rgba(0, 0, 0, 0.05);
-            transition: all var(--transition-speed) ease;
-            padding: 14px 16px;
-        }
-        
-        .list-group-item:hover {
-            background: rgba(255, 255, 255, 0.7);
-            transform: translateX(5px);
-        }
-        
-        .btn {
-            border-radius: 50px;
-            padding: 8px 22px;
-            transition: all var(--transition-speed) ease;
-            font-weight: 500;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            font-size: 0.9rem;
-        }
-        
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-        }
-        
-        .btn-primary {
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            border: none;
-        }
-        
-        .btn-primary:active, .btn-primary:focus {
-            background: linear-gradient(135deg, var(--primary-dark), var(--secondary-color));
-            box-shadow: none;
-        }
-        
-        .btn-outline-primary {
-            border: 2px solid var(--primary-color);
-            color: var(--primary-color);
-        }
-        
-        .btn-outline-primary:hover {
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            color: white;
-            border: 2px solid transparent;
-        }
-        
-        .toast-container {
-            z-index: 1080;
-        }
-        
-        .toast {
-            backdrop-filter: blur(10px);
-            border-radius: var(--border-radius);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
-            overflow: hidden;
-            border: none;
-        }
-        
-        /* Custom floating animation */
-        @keyframes float {
-            0% { transform: translateY(0px); }
-            50% { transform: translateY(-10px); }
-            100% { transform: translateY(0px); }
-        }
-        
-        .float-animation {
-            animation: float 5s ease-in-out infinite;
-        }
-        
-        /* Section titles */
-        .section-title {
-            font-weight: 600;
-            position: relative;
-            margin-bottom: 30px;
-            padding-bottom: 12px;
-            color: #343a40;
-        }
-        
-        .section-title::after {
-            content: '';
-            position: absolute;
-            left: 0;
-            bottom: 0;
-            width: 50px;
-            height: 4px;
-            background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
-            border-radius: 2px;
-            transition: width 0.3s ease;
-        }
-        
-        .section-title:hover::after {
-            width: 100px;
-        }
-        
-        /* Media hover effects */
-        .media-card {
-            overflow: hidden;
-            border-radius: var(--border-radius);
-            position: relative;
-        }
-        
-        .media-card img {
-            transition: transform 0.5s ease;
-        }
-        
-        .media-card:hover img {
-            transform: scale(1.05);
-        }
-        
-        /* Link hover effects */
-        .link-hover {
-            position: relative;
-            text-decoration: none;
-            color: var(--primary-color);
-            font-weight: 500;
-            transition: color 0.3s ease;
-        }
-        
-        .link-hover::after {
-            content: '';
-            position: absolute;
-            width: 0;
-            height: 2px;
-            bottom: -2px;
-            left: 0;
-            background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
-            transition: width 0.3s ease;
-        }
-        
-        .link-hover:hover {
-            color: var(--secondary-color);
-        }
-        
-        .link-hover:hover::after {
-            width: 100%;
-        }
-        
-        /* Background particles */
-        #particles-js {
-            position: fixed;
-            width: 100%;
-            height: 100%;
-            top: 0;
-            left: 0;
-            z-index: 0;
-            opacity: 0;
-            pointer-events: none;
-            background: radial-gradient(circle at 30% 40%, rgba(76, 201, 240, 0.05), transparent 30%),
-                        radial-gradient(circle at 70% 70%, rgba(114, 9, 183, 0.05), transparent 35%),
-                        radial-gradient(circle at 80% 10%, rgba(247, 37, 133, 0.05), transparent 25%);
-            transition: opacity 1.5s ease-in-out;
-        }
-        
-        /* Pulsing glow effect for particles */
-        @keyframes pulse-glow {
-            0% { filter: blur(0px); }
-            50% { filter: blur(2px); }
-            100% { filter: blur(0px); }
-        }
-
-        body.loaded #particles-js {
-            opacity: 0.7;
-        }
-
-        /* Ensure content appears above particles */
-        .search-container,
-        .container,
-        section,
-        footer {
-            position: relative;
-            z-index: 1;
-        }
-        
-        /* Loading animation */
-        .spinner-border {
-            width: 3.5rem;
-            height: 3.5rem;
-            border-width: 0.25rem;
-            animation: spinner-border 1.2s linear infinite, pulse 2s ease-in-out infinite;
-            border-color: var(--primary-color) transparent transparent transparent;
-        }
-        
-        /* Custom scrollbar */
-        ::-webkit-scrollbar {
-            width: 10px;
-        }
-        
-        ::-webkit-scrollbar-track {
-            background: rgba(0, 0, 0, 0.05);
-            border-radius: 5px;
-        }
-        
-        ::-webkit-scrollbar-thumb {
-            background: linear-gradient(to bottom, var(--primary-color), var(--secondary-color));
-            border-radius: 5px;
-        }
-        
-        ::-webkit-scrollbar-thumb:hover {
-            background: linear-gradient(to bottom, var(--secondary-color), var(--primary-color));
-        }
-        
-        /* Footer styling */
-        footer {
-            background: linear-gradient(to right, #212529, #343a40);
-            padding: 30px 0;
-            position: relative;
-            overflow: hidden;
-            margin-top: 50px;
-        }
-        
-        footer::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 4px;
-            background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
-        }
-        
-        /* Container styling */
-        .container.my-5 {
-            padding-top: 20px;
-            padding-bottom: 50px;
-        }
-        
-        @media (max-width: 768px) {
-            .timeline-container::after {
-                left: 31px;
-            }
-            
-            .timeline-item {
-                width: 100%;
-                padding-left: 70px;
-                padding-right: 25px;
-            }
-            
-            .timeline-left::after, .timeline-right::after {
-                left: 15px;
-            }
-            
-            .timeline-right {
-                left: 0;
-            }
-            
-            .container {
-                padding-left: 20px;
-                padding-right: 20px;
-            }
-        }
-        
-        /* Ripple effect */
-        .btn {
-            position: relative;
-            overflow: hidden;
-        }
-        .ripple {
-            position: absolute;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.5);
-            transform: scale(0);
-            animation: ripple 0.6s linear;
-            pointer-events: none;
-        }
-        @keyframes ripple {
-            to {
-                transform: scale(2.5);
-                opacity: 0;
-            }
-        }
-        
-        /* Smooth transition for text-primary */
-        .text-primary {
-            transition: color 0.3s ease;
-        }
-        
-        /* Media Gallery Improvements */
-        .media-container {
-            position: relative;
-        }
-        
-        .media-card {
-            overflow: hidden;
-            border-radius: var(--border-radius);
-            position: relative;
-            margin-bottom: var(--spacing-md);
-            box-shadow: var(--card-shadow);
-            transition: all var(--transition-speed) ease;
-            height: 100%;
-        }
-        
-        .media-card:hover {
-            transform: translateY(-7px);
-            box-shadow: var(--card-shadow-hover);
-        }
-        
-        .media-card img {
-            transition: transform 0.7s ease;
-            width: 100%;
-            height: 220px;
-            object-fit: cover;
-        }
-        
-        .media-card:hover img {
-            transform: scale(1.08);
-        }
-        
-        .media-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(to top, rgba(0, 0, 0, 0.7) 0%, rgba(0, 0, 0, 0) 50%);
-            opacity: 0.6;
-            transition: all var(--transition-speed) ease;
-        }
-        
-        .media-card:hover .media-overlay {
-            opacity: 0.8;
-            background: linear-gradient(to top, rgba(0, 0, 0, 0.8) 0%, rgba(0, 0, 0, 0.2) 60%);
-        }
-        
-        .media-caption {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            padding: 15px;
-            color: white;
-            font-weight: 500;
-            transform: translateY(10px);
-            transition: all var(--transition-speed) ease;
-            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-        }
-        
-        .media-card:hover .media-caption {
-            transform: translateY(0);
-        }
-        
-        .media-type-badge {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            background: rgba(255, 255, 255, 0.8);
-            backdrop-filter: blur(5px);
-            color: var(--primary-color);
-            padding: 5px 10px;
-            border-radius: 20px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            z-index: 1;
-            transition: all var(--transition-speed) ease;
-            opacity: 0.8;
-        }
-        
-        .media-card:hover .media-type-badge {
-            background: rgba(255, 255, 255, 0.95);
-            opacity: 1;
-        }
-        
-        .media-zoom-icon {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%) scale(0);
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.8);
-            backdrop-filter: blur(5px);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--primary-color);
-            font-size: 1.5rem;
-            opacity: 0;
-            transition: all 0.3s ease;
-            z-index: 2;
-            cursor: pointer;
-        }
-        
-        .media-card:hover .media-zoom-icon {
-            transform: translate(-50%, -50%) scale(1);
-            opacity: 1;
-        }
-        
-        .media-zoom-icon:hover {
-            background: rgba(255, 255, 255, 0.95);
-            color: var(--secondary-color);
-        }
-        
-        /* Video card specific styles */
-        .video-card .ratio {
-            border-radius: var(--border-radius) var(--border-radius) 0 0;
-            overflow: hidden;
-        }
-        
-        .video-caption {
-            padding: 15px;
-            text-align: center;
-            font-weight: 500;
-            color: #495057;
-            background: rgba(255, 255, 255, 0.9);
-            border-radius: 0 0 var(--border-radius) var(--border-radius);
-        }
-        
-        /* Lightbox styles */
-        .lightbox {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.9);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 9999;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.3s ease;
-        }
-        
-        .lightbox.active {
-            opacity: 1;
-            pointer-events: auto;
-        }
-        
-        .lightbox-content {
-            max-width: 90%;
-            max-height: 90%;
-            position: relative;
-            transition: transform 0.3s ease;
-            transform: scale(0.9);
-        }
-        
-        .lightbox.active .lightbox-content {
-            transform: scale(1);
-        }
-        
-        .lightbox-image {
-            max-width: 100%;
-            max-height: 90vh;
-            border-radius: 5px;
-            box-shadow: 0 5px 25px rgba(0, 0, 0, 0.5);
-        }
-        
-        .lightbox-caption {
-            position: absolute;
-            bottom: -40px;
-            left: 0;
-            right: 0;
-            text-align: center;
-            color: white;
-            font-size: 1rem;
-            padding: 10px;
-        }
-        
-        .lightbox-close {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            width: 40px;
-            height: 40px;
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 1.5rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        
-        .lightbox-close:hover {
-            background: rgba(255, 255, 255, 0.3);
-            transform: rotate(90deg);
-        }
-        
-        .lightbox-navigation {
-            position: absolute;
-            top: 50%;
-            width: 100%;
-            display: flex;
-            justify-content: space-between;
-            transform: translateY(-50%);
-            padding: 0 20px;
-        }
-        
-        .lightbox-nav-btn {
-            width: 50px;
-            height: 50px;
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 1.5rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        
-        .lightbox-nav-btn:hover {
-            background: rgba(255, 255, 255, 0.3);
-        }
-        
-        /* Media counter badge */
-        .media-counter {
-            position: absolute;
-            top: 15px;
-            left: 15px;
-            background: rgba(var(--primary-color-rgb, 13, 110, 253), 0.8);
-            color: white;
-            border-radius: 20px;
-            padding: 3px 10px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            z-index: 2;
-            transition: all var(--transition-speed) ease;
-        }
-        
-        .media-card:hover .media-counter {
-            background: rgba(var(--primary-color-rgb, 13, 110, 253), 1);
-        }
-        
-        @media (max-width: 768px) {
-            .media-card img {
-                height: 180px;
-            }
-        }
-        
-        /* Updated media card styling for placeholders */
-        .media-card {
-            overflow: hidden;
-            border-radius: var(--border-radius);
-            position: relative;
-            margin-bottom: var(--spacing-md);
-            box-shadow: var(--card-shadow);
-            transition: all var(--transition-speed) ease;
-            height: 100%;
-            background-color: rgba(255, 255, 255, 0.8);
-        }
-        
-        .media-card img {
-            transition: transform 0.7s ease;
-            width: 100%;
-            height: 220px;
-            object-fit: cover;
-            object-position: center;
-        }
-        
-        /* Placeholder image specific styling */
-        .media-card img[src*="Research_Card_Placeholder.png"] {
-            object-fit: contain;
-            padding: 20px;
-            background-color: rgba(255, 255, 255, 0.9);
-        }
-        
-        /* Lightbox placeholder styling */
-        .lightbox-image[src*="Research_Card_Placeholder.png"] {
-            max-height: 70vh;
-            object-fit: contain;
-            background-color: rgba(255, 255, 255, 0.1);
-            padding: 20px;
-        }
-        
-        /* Placeholder for videos */
-        .ratio.placeholder-bg {
-            background-image: url('assets/images/Research_Card_Placeholder.png');
-            background-size: contain;
-            background-repeat: no-repeat;
-            background-position: center;
-            background-color: rgba(255, 255, 255, 0.9);
-        }
-        
-        /* Add CSS for the ripple effect */
-        .custom-btn, .toggle-btn {
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .ripple {
-            position: absolute;
-            border-radius: 50%;
-            background-color: rgba(255, 255, 255, 0.7);
-            transform: scale(0);
-            animation: ripple-animation 0.6s linear;
-            pointer-events: none;
-        }
-        
-        @keyframes ripple-animation {
-            to {
-                transform: scale(4);
-                opacity: 0;
-            }
-        }
-
-        /* Add styling for the description section */
-        .description-box {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border-radius: var(--border-radius);
-            padding: var(--spacing-lg);
-            margin-bottom: var(--spacing-lg);
-            box-shadow: var(--card-shadow);
-            border-left: 5px solid var(--primary-color);
-            line-height: 1.8;
-            position: relative;
-            overflow: hidden;
-            transition: all var(--transition-speed) ease;
-        }
-
-        .description-box:hover {
-            box-shadow: var(--card-shadow-hover);
-            transform: translateY(-5px);
-        }
-
-        .description-box::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 10px;
-            background: linear-gradient(to right, 
-                rgba(var(--primary-color-rgb, 13, 110, 253), 0.05),
-                rgba(var(--primary-color-rgb, 13, 110, 253), 0.1),
-                rgba(var(--primary-color-rgb, 13, 110, 253), 0.05));
-            opacity: 0.5;
-            z-index: 0;
-        }
-
-        .description-box h3 {
-            position: relative;
-            z-index: 2;
-            margin-bottom: 20px;
-        }
-
-        .description-box p {
-            position: relative;
-            z-index: 2;
-            font-size: 1.05rem;
-            color: #343a40;
-            margin-bottom: 15px;
-        }
-
-        .description-highlight {
-            color: var(--primary-color);
-            font-weight: 600;
-        }
-
-        .description-section {
-            margin-bottom: 20px;
-        }
-
-        .description-section:last-child {
-            margin-bottom: 0;
-        }
-
-        .description-section-title {
-            font-weight: 600;
-            font-size: 1.2rem;
-            color: #343a40;
-            margin-bottom: 10px;
-            display: flex;
-            align-items: center;
-        }
-
-        .description-section-title i {
-            margin-right: 8px;
-            color: var(--primary-color);
-        }
-
-        /* Add styles for timeline marker labels */
-        .timeline-marker-label {
-            position: absolute;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(255, 255, 255, 0.95);
-            padding: 5px 12px;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
-            z-index: 3;
-            text-align: center;
-            white-space: nowrap;
-            border: 1px solid rgba(0, 0, 0, 0.05);
-        }
-
-        .timeline-start-label {
-            top: 5px;
-            background: linear-gradient(to right, rgba(255, 255, 255, 0.9), rgba(var(--primary-color-rgb, 13, 110, 253), 0.1));
-            border-color: rgba(var(--primary-color-rgb, 13, 110, 253), 0.2);
-        }
-
-        .timeline-end-label {
-            bottom: 20px; /* Position it farther from the end of the timeline line */
-            background: linear-gradient(to right, rgba(255, 255, 255, 0.9), rgba(var(--accent-color-rgb, 253, 126, 20), 0.1));
-            border-color: rgba(var(--accent-color-rgb, 253, 126, 20), 0.2);
-            padding-bottom: 8px; /* Add a bit more padding for visual spacing */
-        }
-
-        /* Improved responsive layout for mobile */
-        @media (max-width: 768px) {
-            .timeline-container::after {
-                left: 31px;
-            }
-            
-            .timeline-item {
-                width: 100%;
-                padding-left: 70px;
-                padding-right: 25px;
-            }
-            
-            .timeline-left::after, 
-            .timeline-right::after {
-                left: 16px;
-            }
-            
-            .timeline-right {
-                left: 0;
-            }
-            
-            .timeline-left::before,
-            .timeline-right::before {
-                width: 25px;
-                top: 30px;
-            }
-            
-            .timeline-left::before {
-                left: 31px;
-                background: linear-gradient(to right, var(--primary-color), transparent);
-            }
-            
-            .timeline-right::before {
-                left: 31px;
-                background: linear-gradient(to right, var(--secondary-color), transparent);
-            }
-            
-            .timeline-left .timeline-content,
-            .timeline-right .timeline-content {
-                text-align: left;
-                transform: none;
-            }
-            
-            .timeline-left .timeline-title {
-                justify-content: flex-start;
-            }
-            
-            .timeline-left .timeline-title .timeline-icon {
-                order: 0;
-                margin-left: 0;
-                margin-right: 8px;
-            }
-            
-            .timeline-left .timeline-status {
-                margin-right: 0;
-                margin-left: 8px;
-            }
-            
-            .timeline-left .timeline-content:hover,
-            .timeline-right .timeline-content:hover {
-                transform: translateY(-3px);
-            }
-            
-            .timeline-marker-label {
-                left: 31px;
-                transform: translateX(0);
-                padding: 4px 10px;
-            }
-            
-            .timeline-marker-label:hover {
-                transform: translateX(0) translateY(-3px);
-            }
-            
-            .timeline-start-label {
-                top: 45px;
-            }
-            
-            .timeline-end-label {
-                bottom: 20px;
-                left: 60px; /* Move it even further to the right to avoid overlapping */
-                transform: translateX(0);
-            }
-            
-            .timeline-container::before {
-                left: 31px;
-                margin-left: 0;
-            }
-            
-            .timeline-end-marker {
-                left: 31px;
-                margin-left: 0;
-            }
-        }
-
-        /* Special accent particles */
-        .floating-accent {
-            position: fixed;
-            width: 400px;
-            height: 400px;
-            background: radial-gradient(circle, rgba(76, 201, 240, 0.15) 0%, rgba(76, 201, 240, 0) 70%);
-            border-radius: 50%;
-            filter: blur(20px);
-            opacity: 0.7;
-            animation: float-accent 25s infinite linear;
-            pointer-events: none;
-            z-index: 0;
-        }
-        
-        .floating-accent:nth-child(1) {
-            top: 20%;
-            left: 10%;
-            width: 500px;
-            height: 500px;
-            background: radial-gradient(circle, rgba(114, 9, 183, 0.12) 0%, rgba(114, 9, 183, 0) 70%);
-            animation-duration: 30s;
-        }
-        
-        .floating-accent:nth-child(2) {
-            top: 70%;
-            left: 80%;
-            width: 450px;
-            height: 450px;
-            background: radial-gradient(circle, rgba(247, 37, 133, 0.12) 0%, rgba(247, 37, 133, 0) 70%);
-            animation-duration: 25s;
-            animation-delay: 5s;
-        }
-        
-        .floating-accent:nth-child(3) {
-            top: 40%;
-            left: 60%;
-            width: 400px;
-            height: 400px;
-            background: radial-gradient(circle, rgba(67, 97, 238, 0.12) 0%, rgba(67, 97, 238, 0) 70%);
-            animation-duration: 28s;
-            animation-delay: 2s;
-        }
-        
-        @keyframes float-accent {
-            0% { transform: translate(0, 0) rotate(0deg); }
-            25% { transform: translate(-50px, 50px) rotate(90deg); }
-            50% { transform: translate(0, 100px) rotate(180deg); }
-            75% { transform: translate(50px, 50px) rotate(270deg); }
-            100% { transform: translate(0, 0) rotate(360deg); }
-        }
-        
-        /* Burst effect for click animation */
-        .particle-burst {
-            position: absolute;
-            pointer-events: none;
-            border-radius: 50%;
-            z-index: 2;
-            transform: translate(-50%, -50%);
-            animation: burst-anim 1s forwards ease-out;
-        }
-        
-        @keyframes burst-anim {
-            0% {
-                width: 0;
-                height: 0;
-                opacity: 0.7;
-                background: radial-gradient(circle, rgba(114, 9, 183, 0.8) 0%, rgba(114, 9, 183, 0) 70%);
-            }
-            100% {
-                width: 300px;
-                height: 300px;
-                opacity: 0;
-                background: radial-gradient(circle, rgba(114, 9, 183, 0) 0%, rgba(114, 9, 183, 0) 70%);
-            }
-        }
-    </style>
+    <!-- Performance optimization styles -->
+    <link rel="stylesheet" href="assets/styles/performance.css">
+    <link rel="stylesheet" href="assets/styles/project-details.css">
+    
+    <!-- Performance optimization script - Load early for immediate optimizations -->
+    <script src="assets/js/performance-optimizer.js" defer></script>
+    
+    <!-- Prevent Theme Flash Script - Must run immediately -->
+    <script>
+    (function() {
+        // Get saved theme immediately to prevent flash
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme) {
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        }
+    })();
+    </script>
+    
     
 </head>
 <body>
     <?php include 'src/includes/navbar.php'; ?>
+    
+    <!-- Inject PHP session data into JavaScript -->
+    <script>
+        <?php if(isset($_SESSION['logged_in']) && $_SESSION['logged_in'] && isset($_SESSION['user_id'])): ?>
+        var currentUserId = "<?php echo $_SESSION['user_id']; ?>";
+        var currentUserName = "<?php echo isset($_SESSION['username']) ? $_SESSION['username'] : ''; ?>";
+        var currentUserType = "<?php echo isset($_SESSION['user_type']) ? $_SESSION['user_type'] : ''; ?>";
+        <?php else: ?>
+        var currentUserId = null;
+        var currentUserName = null;
+        var currentUserType = null;
+        <?php endif; ?>
+    </script>
 
     <!-- Background particles -->
     <div id="particles-js"></div>
@@ -2081,10 +166,16 @@
     <div class="floating-accent"></div>
     <div class="floating-accent"></div>
     <div class="floating-accent"></div>
+    
+    <!-- Modern hero background -->
+    <div class="hero-background">
+        <div class="hero-grid"></div>
+        <div class="hero-glow"></div>
+    </div>
 
     <div class="container my-5">
         <!-- Loading spinner -->
-        <div id="loading-spinner" class="loading-spinner">
+        <div id="loading-spinner">
             <div class="spinner-border text-primary" role="status">
                 <span class="visually-hidden">Loading...</span>
             </div>
@@ -2121,7 +212,12 @@
                     </div>
                     
                     <div id="project-timeline" class="mb-5" data-aos="fade-up" data-aos-delay="400">
-                        <h3 class="section-title">Project Timeline</h3>
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h3 class="section-title mb-0">Project Timeline</h3>
+                            <button id="editTimelineBtn" class="btn btn-outline-primary btn-sm" title="Edit Timeline">
+                                <i class="bi bi-pencil-square me-1"></i>Edit Timeline
+                            </button>
+                        </div>
                         <div class="timeline-container" id="timeline-container">
                             <!-- Timeline items will be loaded here -->
                         </div>
@@ -2136,11 +232,41 @@
                 </div>
                 
                 <!-- Right column: Metadata and sidebar info -->
-                <div class="col-lg-4">
-                    <div class="metadata-card mb-4" data-aos="fade-left" data-aos-delay="100">
+                <div class="col-lg-4" style="padding-top: 0;">
+                    <div class="metadata-card mb-4 mt-0" style="margin-top: 0 !important;" data-aos="fade-left" data-aos-delay="100">
                         <h4 class="mb-3">Project Information</h4>
                         <div id="project-info">
                             <!-- Project info will be loaded here -->
+                        </div>
+                    </div>
+                    
+                    <!-- Project Meetings Section -->
+                    <div class="card mb-4" data-aos="fade-left" data-aos-delay="150" id="project-meetings-section">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0 text-white">
+                                <i class="bi bi-calendar-event me-2"></i>Project Meetings
+                            </h5>
+                            <button id="addMeetingBtn" class="btn btn-sm btn-primary" title="Schedule Meeting">
+                                <i class="bi bi-plus-circle"></i>
+                            </button>
+                        </div>
+                        <div class="card-body" id="meetings-container" style="max-height: 300px; overflow-y: auto;">
+                            <div id="meetings-loading" style="display: none;">
+                                <div class="text-center py-3">
+                                    <div class="spinner-border spinner-border-sm text-primary" role="status">
+                                        <span class="visually-hidden">Loading...</span>
+                                    </div>
+                                    <p class="mt-2 mb-0 text-muted small">Loading meetings...</p>
+                                </div>
+                            </div>
+                            <div id="meetings-list">
+                                <!-- Meetings will be loaded here -->
+                            </div>
+                            <div id="no-meetings" class="text-center py-4">
+                                <i class="bi bi-calendar-x text-primary" style="font-size: 2rem;"></i>
+                                <p class="text-primary mt-2 mb-0">No meetings scheduled yet</p>
+                                <small class="text-primary">Click the + button to schedule a meeting</small>
+                            </div>
                         </div>
                     </div>
                     
@@ -2193,11 +319,7 @@
         </div>
     </div>
 
-    <footer class="bg-dark text-light py-4 mt-5">
-        <div class="container text-center">
-            <p>&copy; 2025 UIU</p>
-        </div>
-    </footer>
+    <?php include 'src/includes/footer.php'; ?>
 
     <!-- Add lightbox container -->
     <div class="lightbox" id="lightbox">
@@ -2218,23 +340,279 @@
         </div>
     </div>
 
+    <!-- Include Timeline Editor Overlay -->
+    <?php include 'timeline_editor_overlay.php'; ?>
+    
+    <!-- Meeting Creation Modal -->
+    <div class="modal fade" id="meetingModal" tabindex="-1" aria-labelledby="meetingModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="meetingModalLabel">
+                        <i class="bi bi-calendar-plus me-2"></i>Schedule Meeting
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Meeting Form -->
+                    <form id="meetingForm">
+                        <!-- Loading indicator for suggestions -->
+                        <div id="timeSuggestionsLoading" class="loading-state" style="display: none;">
+                            <div class="d-flex align-items-center justify-content-center py-4">
+                                <div class="spinner-border spinner-border-sm text-primary me-3" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                                <div>
+                                    <p class="mb-1 fw-medium">Analyzing Team Schedules</p>
+                                    <small class="text-muted">Finding optimal meeting times...</small>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- No Date Selected Message -->
+                        <div id="noDateSelected" class="empty-state">
+                            <div class="text-center py-4">
+                                <div class="empty-icon mb-3">
+                                    <i class="bi bi-calendar-date text-muted"></i>
+                                </div>
+                                <h6 class="text-muted mb-2">Select a Date First</h6>
+                                <p class="text-muted small mb-0">Choose a meeting date from the calendar to see available time slots</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Three Column Layout -->
+                        <div class="row g-4">
+                            <!-- Left Column: Meeting Details & Calendar -->
+                                        <div class="col-lg-4">
+                                            <div class="meeting-details-section">
+                                                <div class="section-header mb-3">
+                                                    <h6 class="text-primary mb-1">
+                                                        <i class="bi bi-calendar3 me-2"></i>Meeting Details
+                                </h6>
+                                                    <small class="text-muted">Set up your team meeting</small>
+                                                </div>
+                                
+                                                <!-- Meeting Form Fields -->
+                                                <div class="meeting-form-fields">
+                                <div class="mb-3">
+                                                        <label for="meetingTitle" class="form-label fw-medium">Meeting Title</label>
+                                                        <input type="text" class="form-control" id="meetingTitle" placeholder="Enter meeting title">
+                                </div>
+                                
+                                <div class="mb-3">
+                                                        <label for="meetingDescription" class="form-label fw-medium">Description</label>
+                                                        <textarea class="form-control" id="meetingDescription" rows="3" placeholder="Meeting agenda or description"></textarea>
+                                </div>
+                                
+                                <div class="mb-3">
+                                                        <label for="meetingLink" class="form-label fw-medium">Meeting Link</label>
+                                                        <input type="url" class="form-control" id="meetingLink" placeholder="Zoom, Google Meet, etc.">
+                                                        <div class="mt-2">
+                                                            <button type="button" id="createGoogleMeetBtn" class="btn btn-outline-primary btn-sm w-100">
+                                                                <i class="bi bi-camera-video me-2"></i>Create Google Meet Link
+                                                            </button>
+                                                            <button type="button" id="testMeetingBtn" class="btn btn-outline-secondary btn-sm w-100 mt-2">
+                                                                <i class="bi bi-play-circle me-2"></i>Test Meeting (Current Time)
+                                                            </button>
+                                                        </div>
+                                </div>
+                                
+                                <!-- Manual Time Selection for Testing -->
+                                <div class="mb-3">
+                                    <label class="form-label fw-medium text-warning">
+                                        <i class="bi bi-tools me-2"></i>Manual Time Selection (Testing)
+                                    </label>
+                                    <div class="border border-warning rounded p-3" style="background-color: #fff8e1;">
+                                        <div class="row g-2">
+                                            <div class="col-6">
+                                                <label for="manualStartTime" class="form-label">Start Time</label>
+                                                <input type="time" class="form-control form-control-sm" id="manualStartTime">
+                                            </div>
+                                            <div class="col-6">
+                                                <label for="manualEndTime" class="form-label">End Time</label>
+                                                <input type="time" class="form-control form-control-sm" id="manualEndTime">
+                                            </div>
+                                        </div>
+                                        <div class="mt-2">
+                                            <button type="button" class="btn btn-warning btn-sm w-100" onclick="setManualTime()">
+                                                <i class="bi bi-clock me-2"></i>Set Manual Time
+                                            </button>
+                                        </div>
+                                        <small class="text-muted d-block mt-1">
+                                            <i class="bi bi-info-circle me-1"></i>
+                                            For testing: Bypass suggestions and set exact time
+                                        </small>
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                                        <label for="meetingDate" class="form-label fw-medium">Select Date</label>
+                                                        <input type="date" class="form-control" id="meetingDate">
+                                                    </div>
+                                                    
+                                                    <!-- Calendar Widget -->
+                                                    <div class="mb-3">
+                                                        <label class="form-label fw-medium">Calendar View</label>
+                                    <div id="meetingCalendar" class="custom-calendar">
+                                        <!-- Calendar will be rendered here -->
+                                    </div>
+                                                    </div>
+                                                </div>
+                                </div>
+                            </div>
+                            
+                                        <!-- Middle Column: Time Suggestions -->
+                                        <div class="col-lg-4">
+                                            <div id="timeSuggestionsContainer" class="suggestions-container" style="display: none;">
+                                                <div class="recommendations-section">
+                                                    <div class="section-header mb-3">
+                                                        <div class="d-flex justify-content-between align-items-center">
+                                                            <h6 class="text-success mb-0">
+                                                                <i class="bi bi-lightbulb-fill me-2"></i>Time Suggestions
+                                                            </h6>
+                                                            <button type="button" class="btn btn-outline-success btn-sm" onclick="refreshTimeSuggestions()" title="Recalculate suggestions">
+                                                                <i class="bi bi-arrow-clockwise"></i>
+                                                            </button>
+                                                        </div>
+                                                        
+                                                        <!-- Time Filter Buttons -->
+                                                        <div class="mb-2">
+                                                            <div class="btn-group btn-group-sm" role="group" aria-label="Time filter">
+                                                                <button type="button" class="btn btn-outline-secondary active" id="filterAll" onclick="filterSuggestions('all')">
+                                                                    All
+                                                                </button>
+                                                                <button type="button" class="btn btn-outline-secondary" id="filterAM" onclick="filterSuggestions('am')">
+                                                                    AM
+                                                                </button>
+                                                                <button type="button" class="btn btn-outline-secondary" id="filterPM" onclick="filterSuggestions('pm')">
+                                                                    PM
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                        
+                                                        <small class="text-muted">When everyone is free</small>
+                                                        
+                                                        <!-- Availability Status moved below heading -->
+                                                <div id="availabilityResults" class="availability-status-inline mb-2" style="display: none;">
+                                                    <!-- Availability results will be shown here -->
+                                                </div>
+                                </div>
+                                
+                                                    <!-- Time Slots Grid -->
+                                                    <div id="timeSlots" class="enhanced-time-slots">
+                                                        <!-- Suggested time slots will be shown here -->
+                                    </div>
+                                </div>
+                                </div>
+                            </div>
+                                
+                            <!-- Right Column: Team Availability Overview -->
+                            <div class="col-lg-4">
+                                <div id="memberSchedules" class="team-overview-sidebar" style="display: none;">
+                                    <!-- Member schedules will be shown here -->
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Hidden fields for selected time -->
+                        <input type="hidden" id="meetingStartTime">
+                        <input type="hidden" id="meetingEndTime">
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" id="saveMeetingBtn" class="btn btn-primary">
+                        <i class="bi bi-calendar-check me-1"></i>Schedule Meeting
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
     <!-- JavaScript Libraries -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.4/gsap.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
+    <script src="assets/js/timeline_debug.js"></script>
     <script>
-        // Initialize AOS animations
-        AOS.init({
-            duration: 800,
-            easing: 'ease-in-out',
-            once: true
+        // Initialize AOS animations with performance optimization
+        document.addEventListener('DOMContentLoaded', function() {
+            // Use performance optimizer for AOS if available
+            if (window.performanceOptimizer) {
+                window.performanceOptimizer.optimizeAOS();
+            } else {
+                // Fallback optimized AOS configuration
+                const isMobile = window.innerWidth <= 768;
+                
+                AOS.init({
+                    duration: isMobile ? 300 : 600,
+                    easing: 'ease-out',
+                    once: true, // Only animate once for better performance
+                    mirror: false, // Disable mirror for better performance
+                    anchorPlacement: 'top-bottom',
+                    offset: 50,
+                    disable: isMobile ? 'mobile' : false
+                });
+            }
+        });
+        
+        // Add futuristic effects to the page
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add glow effect class to cards and interactive elements
+            const glowElements = document.querySelectorAll(
+                '.project-header, .card, .abstract-box, .metadata-card, .timeline-content, .member-card, .btn-primary'
+            );
+            
+            glowElements.forEach(el => {
+                el.classList.add('glow-effect');
+            });
+            
+            // Add text-link class to appropriate links
+            document.querySelectorAll('.link-hover').forEach(link => {
+                link.classList.add('text-link');
+            });
+            
+            // Add futuristic border effect to media cards
+            document.querySelectorAll('.media-card').forEach(card => {
+                card.classList.add('futuristic-border');
+            });
+            
+            // Add typing cursor effect to project title
+            const projectTitle = document.querySelector('.project-header h1');
+            if (projectTitle) {
+                const cursor = document.createElement('span');
+                cursor.className = 'typing-cursor';
+                projectTitle.appendChild(cursor);
+            }
+            
+            // Add data loading effect to stats
+            document.querySelectorAll('.progress-bar').forEach(bar => {
+                bar.classList.add('data-loading');
+            });
+            
+            // Add text glow effect to important items
+            document.querySelectorAll('.status-badge, .timeline-title, .member-name').forEach(item => {
+                item.classList.add('text-glow');
+            });
+            
+            // Add terminal effect to tech-related text
+            document.querySelectorAll('.member-id span').forEach(item => {
+                item.classList.add('terminal-text');
+            });
         });
 
             // Get project ID from URL
         const urlParams = new URLSearchParams(window.location.search);
         const projectId = urlParams.get('id');
+        
+        // Handle edit timeline button click
+        document.getElementById('editTimelineBtn').addEventListener('click', function() {
+            // Open the timeline editor modal
+            const timelineEditorModal = new bootstrap.Modal(document.getElementById('timelineEditorModal'));
+            timelineEditorModal.show();
+        });
 
         // Function to create ripple effect on buttons
         function createRipple(event) {
@@ -2400,13 +778,18 @@
             }
             
             // Fetch project details
-            fetch(`src/model/fetch_project_by_id.php?id=${projectId}`)
+            fetch(`src/model/get_project.php?id=${projectId}`)
                 .then(response => response.json())
-                .then(project => {
-                    if (project.error) {
+                .then(data => {
+                    if (!data.success || data.error) {
                         showProjectNotFound();
                         return;
                     }
+                    
+                    const project = data.project;
+                    
+                    // Store project data globally for timeline editor
+                    window.currentProject = project;
                     
                     // Hide loading spinner and show project details with nice fade effect
                     const loadingSpinner = document.getElementById('loading-spinner');
@@ -2414,20 +797,69 @@
                     
                     fadeOut(loadingSpinner, 400, function() {
                         fadeIn(projectDetails, 600);
-                    
-                    // Render project details
-                    renderProjectHeader(project);
-                    renderProjectAbstract(project);
-                    renderProjectDescription(project);
-                    renderProjectInfo(project);
-                    renderTeamMembers(project);
-                    renderKeywords(project);
-                    renderResources(project);
-                    renderExternalLinks(project);
-                    renderTimeline(project);
-                    renderReferences(project);
-                    renderMedia(project);
-                    renderStats(project);
+                        
+                        // Render project details
+                        renderProjectHeader(project);
+                        renderProjectAbstract(project);
+                        renderProjectDescription(project);
+                        renderProjectInfo(project);
+                        renderTeamMembers(project);
+                        renderKeywords(project);
+                        renderResources(project);
+                        renderExternalLinks(project);
+                        renderTimeline(project);
+                        renderReferences(project);
+                        renderMedia(project);
+                        renderStats(project);
+                        
+                        // Show Edit Timeline button only for project owners or admins
+                        const editTimelineBtn = document.getElementById('editTimelineBtn');
+                        const isLoggedIn = <?php echo isset($_SESSION['user_id']) ? 'true' : 'false'; ?>;
+                        const loggedInUserId = <?php echo isset($_SESSION['user_id']) ? "'" . $_SESSION['user_id'] . "'" : 'null'; ?>;
+                        
+                        // Check if the current user created this project or is a member
+                        let canEditTimeline = false;
+                        
+                        if (isLoggedIn) {
+                            // Project creator check
+                            if (project.createdBy && (
+                                (project.createdBy.$oid && project.createdBy.$oid === loggedInUserId) || 
+                                project.createdBy === loggedInUserId
+                            )) {
+                                canEditTimeline = true;
+                            }
+                            
+                            // Project member check (supervisor or team member)
+                            if (!canEditTimeline && project.members && Array.isArray(project.members)) {
+                                canEditTimeline = project.members.some(member => 
+                                    member.userId && (
+                                        (member.userId.$oid && member.userId.$oid === loggedInUserId) || 
+                                        member.userId === loggedInUserId
+                                    )
+                                );
+                            }
+                            
+                            // Supervisor check
+                            if (!canEditTimeline && project.supervisor && project.supervisor.userId) {
+                                if ((project.supervisor.userId.$oid && project.supervisor.userId.$oid === loggedInUserId) ||
+                                    project.supervisor.userId === loggedInUserId) {
+                                    canEditTimeline = true;
+                                }
+                            }
+                        }
+                        
+                        editTimelineBtn.style.display = canEditTimeline ? 'inline-flex' : 'none';
+                        
+                        // Control visibility of Project Meetings section based on the same edit access
+                        const projectMeetingsSection = document.getElementById('project-meetings-section');
+                        if (projectMeetingsSection) {
+                            projectMeetingsSection.style.display = canEditTimeline ? 'block' : 'none';
+                        }
+                        
+                        // Show milestone status dropdowns for supervisors (with slight delay to ensure DOM is ready)
+                        setTimeout(() => {
+                            checkSupervisorAccess(project, loggedInUserId);
+                        }, 100);
                         
                         // Add title animation effect
                         animateProjectTitle();
@@ -2516,41 +948,196 @@
             });
         }
         
+        // Helper function to create clickable profile links
+        async function createProfileLink(name, userId, userType = null) {
+            if (!name) return 'Unknown';
+            
+            // Primary method: Use userId if available
+            if (userId) {
+                try {
+                    const response = await fetch('src/model/check_profile_exists.php', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ userId: userId, userType: userType })
+                    });
+                    
+                    if (response.ok) {
+                        const result = await response.json();
+                        if (result.exists) {
+                            const profileType = result.type === 'faculty' ? 'Faculty_Profile.php' : 'Student_Profile.php';
+                            return `<a href="${profileType}?id=${userId}" class="profile-link ${result.type === 'faculty' ? 'supervisor-link' : 'member-link'}" title="View ${result.type} profile">${name}</a>`;
+                        }
+                    }
+                } catch (error) {
+                    console.log('Profile check failed for user:', userId);
+                }
+            }
+            
+            // Fallback method: Try to find supervisor by name in global faculty data
+            if (userType === 'faculty' || !userType) {
+                try {
+                    // Check if global faculty data is available
+                    if (window.facultyData && Array.isArray(window.facultyData)) {
+                        const matchingFaculty = window.facultyData.find(faculty => 
+                            faculty.name && faculty.name.toLowerCase().trim() === name.toLowerCase().trim()
+                        );
+                        
+                        if (matchingFaculty && matchingFaculty._id) {
+                            console.log(`Found faculty by name: ${name} -> ${matchingFaculty._id}`);
+                            return `<a href="Faculty_Profile.php?id=${matchingFaculty._id}" class="profile-link supervisor-link" title="View faculty profile">${name}</a>`;
+                        }
+                    }
+                    
+                    // If global faculty data is not available, try to fetch it
+                    if (!window.facultyData) {
+                        const facultyResponse = await fetch('src/model/load_faculty.php');
+                        if (facultyResponse.ok) {
+                            const facultyData = await facultyResponse.json();
+                            window.facultyData = facultyData; // Cache for future use
+                            
+                            const matchingFaculty = facultyData.find(faculty => 
+                                faculty.name && faculty.name.toLowerCase().trim() === name.toLowerCase().trim()
+                            );
+                            
+                            if (matchingFaculty && matchingFaculty._id) {
+                                console.log(`Found faculty by name (from fetch): ${name} -> ${matchingFaculty._id}`);
+                                return `<a href="Faculty_Profile.php?id=${matchingFaculty._id}" class="profile-link supervisor-link" title="View faculty profile">${name}</a>`;
+                            }
+                        }
+                    }
+                } catch (error) {
+                    console.log('Faculty name lookup failed:', error);
+                }
+            }
+            
+            // Return original name if no profile found
+            return name;
+        }
+        
         function renderProjectHeader(project) {
             const headerEl = document.getElementById('project-header');
             const isPublic = project.privacy === 0;
             
-            const privacy = isPublic ? 
-                '<span class="status-badge bg-success text-white"><i class="bi bi-unlock"></i>Public</span>' : 
-                '<span class="status-badge bg-warning text-dark"><i class="bi bi-lock"></i>Private</span>';
+            // Create supervisor info with potential link
+            let supervisorInfo = '';
+            if (project.supervisor) {
+                const supervisorName = project.supervisor.name || (typeof project.supervisor === 'string' ? project.supervisor : (project.supervisor.$oid || 'Unknown'));
+                const supervisorId = project.supervisor.userId ? (project.supervisor.userId.$oid || project.supervisor.userId) : null;
                 
-            const supervisorInfo = project.supervisor ? 
-                `<div class="meta-item"><i class="bi bi-person-badge"></i><strong>Supervisor:</strong> ${project.supervisor.name || (typeof project.supervisor === 'string' ? project.supervisor : (project.supervisor.$oid || 'Unknown'))}</div>` : '';
+                // Initially show supervisor name (will be updated to clickable link if profile exists)
+                supervisorInfo = `<div class="meta-item"><i class="bi bi-person-badge"></i><strong>Supervisor:</strong> <span class="supervisor-display">${supervisorName}</span></div>`;
+                
+                // Try to make supervisor clickable (with or without userId)
+                createProfileLink(supervisorName, supervisorId, 'faculty').then(linkedName => {
+                    // Update all supervisor displays with clickable link
+                    document.querySelectorAll('.supervisor-display').forEach(el => {
+                        if (el.textContent.trim() === supervisorName) {
+                            el.innerHTML = linkedName;
+                        }
+                    });
+                }).catch(error => {
+                    console.log('Failed to create supervisor profile link:', error);
+                    // Keep the original name if profile check fails
+                });
+            }
             
-            // Add toggle button with appropriate styling based on current privacy
-            const toggleBtnStyle = isPublic ? 'btn-outline-warning' : 'btn-outline-success';
-            const toggleBtnText = isPublic ? 'Make Private' : 'Make Public';
-            const toggleBtn = `
-                <button id="privacyToggleBtn" class="privacy-toggle btn ${toggleBtnStyle}" data-project-id="${project._id.$oid}">
-                    <i class="bi ${isPublic ? 'bi-lock-fill' : 'bi-unlock-fill'}"></i>${toggleBtnText}
-                </button>
-            `;
+            // Check if the current user is part of the project team (member or supervisor)
+            // We need to fetch the current logged-in user information from PHP session
+            let isAuthorized = false;
+            let currentUser = null;
             
-            // Add edit project button
-            const editBtn = `
+            // Fetch the current user ID from a PHP variable injected into the page
+            if (typeof currentUserId !== 'undefined') {
+                currentUser = currentUserId;
+            }
+            
+            // Check if the current user is authorized to edit the project
+            if (currentUser) {
+                // Check if user is in members list (team members)
+                if (project.members && project.members.length > 0) {
+                    isAuthorized = project.members.some(member => 
+                        (member.userId && member.userId.$oid === currentUser) || 
+                        (member.userId === currentUser)
+                    );
+                }
+                
+                // Enhanced supervisor authorization check - comprehensive patterns
+                if (!isAuthorized && project.supervisor) {
+                    // Check various supervisor data formats
+                    
+                    // Format 1: supervisor.userId with ObjectId
+                    if (project.supervisor.userId && project.supervisor.userId.$oid) {
+                        isAuthorized = (project.supervisor.userId.$oid === currentUser);
+                    }
+                    
+                    // Format 2: supervisor.userId as string
+                    if (!isAuthorized && project.supervisor.userId) {
+                        isAuthorized = (project.supervisor.userId === currentUser);
+                    }
+                    
+                    // Format 3: Direct supervisor field (for simple projects)
+                    if (!isAuthorized && typeof project.supervisor === 'string') {
+                        isAuthorized = (project.supervisor === currentUser);
+                    }
+                    
+                    // Format 4: supervisor.$oid (direct ObjectId)
+                    if (!isAuthorized && project.supervisor.$oid) {
+                        isAuthorized = (project.supervisor.$oid === currentUser);
+                    }
+                    
+                    // Format 5: Name-based matching for faculty users
+                    if (!isAuthorized && currentUserType === 'faculty' && currentUserName && project.supervisor.name) {
+                        isAuthorized = (project.supervisor.name === currentUserName);
+                    }
+                    
+                    // Debug logging for troubleshooting
+                    console.log('Supervisor check debug:', {
+                        currentUser: currentUser,
+                        currentUserName: currentUserName,
+                        currentUserType: currentUserType,
+                        supervisor: project.supervisor,
+                        isAuthorized: isAuthorized
+                    });
+                }
+                
+                // Check if user is the project creator
+                if (!isAuthorized && project.createdBy) {
+                    if (typeof project.createdBy === 'object' && project.createdBy.$oid) {
+                        isAuthorized = (project.createdBy.$oid === currentUser);
+                    } else if (typeof project.createdBy === 'string') {
+                        isAuthorized = (project.createdBy === currentUser);
+                    }
+                }
+            }
+            
+            // Only show edit and leave buttons if user is a team member or supervisor
+            const editBtn = isAuthorized ? `
                 <button id="editProjectBtn" class="btn btn-outline-primary ms-2" data-project-id="${project._id.$oid}">
                     <i class="bi bi-pencil-square"></i>Edit Project
                 </button>
-            `;
+            ` : '';
+
+            const leaveBtn = isAuthorized ? `
+                <button id="leaveProjectBtn" class="btn btn-outline-danger ms-2" data-project-id="${project._id.$oid}" data-project-name="${project.title}" title="Leave this project and group chat">
+                    <i class="bi bi-box-arrow-left"></i>Leave Project
+                </button>
+            ` : '';
             
             headerEl.innerHTML = `
                 <div class="d-flex justify-content-between align-items-start position-relative z-1">
                     <div>
                         <h1 class="float-animation display-4">${project.title}</h1>
                         <div class="mb-3 d-flex align-items-center mt-3">
-                            ${privacy}
-                            ${toggleBtn}
+                            <button id="literatureMatrixBtn" class="btn btn-outline-primary me-2" data-project-id="${project._id.$oid}">
+                                <i class="bi bi-journal-text"></i> Literature Matrix
+                            </button>
+                            <button id="paperBtn" class="btn btn-outline-success me-2" data-project-id="${project._id.$oid}">
+                                <i class="bi bi-file-earmark-text"></i> Paper
+                            </button>
                             ${editBtn}
+                            ${leaveBtn}
                         </div>
                     </div>
                 </div>
@@ -2567,10 +1154,7 @@
                             <i class="bi bi-building"></i>
                             <div><strong>Institution:</strong> ${project.institution || 'United International University'}</div>
                         </div>
-                        ${supervisorInfo ? `<div class="meta-item">
-                            <i class="bi bi-person-badge"></i>
-                            <div><strong>Supervisor:</strong> ${project.supervisor.name || (typeof project.supervisor === 'string' ? project.supervisor : (project.supervisor.$oid || 'Unknown'))}</div>
-                        </div>` : ''}
+                        ${supervisorInfo}
                     </div>
                     <div class="col-md-6">
                         <div class="meta-item">
@@ -2582,23 +1166,16 @@
                             <div><strong>Last Updated:</strong> ${formatDate(project.updatedAt)}</div>
                         </div>
                         <div class="meta-item">
+                            <i class="bi bi-calendar-event"></i>
+                            <div><strong>Estimated Completion:</strong> ${project.estimatedCompletionDate ? formatDate(project.estimatedCompletionDate) : 'Not specified'}</div>
+                        </div>
+                        <div class="meta-item">
                             <i class="bi bi-eye"></i>
                             <div><strong>Views:</strong> ${project.stats?.views || '0'}</div>
                         </div>
                     </div>
                 </div>
             `;
-            
-            // Add event listener for the toggle button
-            const toggleButton = document.getElementById('privacyToggleBtn');
-            if (toggleButton) {
-                toggleButton.addEventListener('click', function() {
-                    toggleProjectPrivacy(project._id.$oid);
-                });
-                
-                // Add ripple effect to the button
-                toggleButton.addEventListener('mousedown', createRipple);
-            }
             
             // Add event listener for the edit button
             const editButton = document.getElementById('editProjectBtn');
@@ -2611,12 +1188,157 @@
                 // Add ripple effect to the button
                 editButton.addEventListener('mousedown', createRipple);
             }
+
+            // Add event listener for the leave button
+            const leaveButton = document.getElementById('leaveProjectBtn');
+            if (leaveButton) {
+                leaveButton.addEventListener('click', function() {
+                    const projectId = this.getAttribute('data-project-id');
+                    const projectName = this.getAttribute('data-project-name');
+                    
+                    // Show confirmation dialog
+                    const confirmMessage = `Are you sure you want to leave "${projectName}"?\n\nThis will:\n• Remove you from the project team\n• Remove you from the group chat\n• You will lose access to all project discussions\n\nThis action cannot be undone.`;
+                    
+                    if (!confirm(confirmMessage)) {
+                        return;
+                    }
+                    
+                    // Disable the button to prevent multiple clicks
+                    this.disabled = true;
+                    const originalContent = this.innerHTML;
+                    this.innerHTML = '<i class="bi bi-hourglass-split"></i>Leaving...';
+                    
+                    // Send leave request to server
+                    const formData = new FormData();
+                    formData.append('projectId', projectId);
+                    
+                    fetch('src/model/leave_project.php', {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Show success message
+                            if (typeof showToast === 'function') {
+                                showToast('success', 'Left Project', data.message || 'You have successfully left the project.');
+                            } else {
+                                alert('You have successfully left the project.');
+                            }
+                            
+                            // Redirect to projects page after a short delay
+                            setTimeout(() => {
+                                window.location.href = 'Research_page.php';
+                            }, 1500);
+                            
+                        } else {
+                            // Show error message
+                            if (typeof showToast === 'function') {
+                                showToast('error', 'Failed to Leave', data.message || 'Failed to leave the project. Please try again.');
+                            } else {
+                                alert(data.message || 'Failed to leave the project. Please try again.');
+                            }
+                            
+                            // Re-enable the button
+                            this.disabled = false;
+                            this.innerHTML = originalContent;
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error leaving project:', error);
+                        
+                        // Show error message
+                        if (typeof showToast === 'function') {
+                            showToast('error', 'Error', 'An error occurred while trying to leave the project. Please try again.');
+                        } else {
+                            alert('An error occurred while trying to leave the project. Please try again.');
+                        }
+                        
+                        // Re-enable the button
+                        this.disabled = false;
+                        this.innerHTML = originalContent;
+                    });
+                });
+                
+                // Add ripple effect to the button
+                leaveButton.addEventListener('mousedown', createRipple);
+            }
+            
+            // Add ripple effect to the timeline edit button
+            const timelineEditBtn = document.getElementById('editTimelineBtn');
+            if (timelineEditBtn) {
+                timelineEditBtn.addEventListener('mousedown', createRipple);
+            }
             
             // Update page title
             document.title = `${project.title} | UIU Research Platform`;
             
             // Add animation for the title to make it stand out
             animateProjectTitle();
+            
+            // Add event listeners for Literature Matrix button
+            const litMatrixButton = document.getElementById('literatureMatrixBtn');
+            if (litMatrixButton) {
+                litMatrixButton.addEventListener('click', function() {
+                    const projectId = this.getAttribute('data-project-id');
+                    window.location.href = `literature_matrix.php?id=${projectId}`;
+                });
+                litMatrixButton.addEventListener('mousedown', createRipple);
+            }
+
+            // Add event listeners for Paper button
+            const paperButton = document.getElementById('paperBtn');
+            if (paperButton) {
+                paperButton.addEventListener('click', async function() {
+                    const projectId = this.getAttribute('data-project-id');
+                    try {
+                        const response = await fetch('src/model/create_etherpad.php', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                projectId: projectId
+                            })
+                        });
+
+                        const data = await response.json();
+                        if (data.success) {
+                            // Create modal for Etherpad
+                            const modalHtml = `
+                                <div class="modal fade" id="etherpadModal" tabindex="-1" aria-labelledby="etherpadModalLabel" aria-hidden="true">
+                                    <div class="modal-dialog modal-xl modal-fullscreen-lg-down">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title" id="etherpadModalLabel">Collaborative Paper Writing</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body p-0">
+                                                <iframe src="${data.embedUrl}" style="width: 100%; height: 80vh; border: none;"></iframe>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                            
+                            // Add modal to body if it doesn't exist
+                            if (!document.getElementById('etherpadModal')) {
+                                document.body.insertAdjacentHTML('beforeend', modalHtml);
+                            }
+                            
+                            // Show the modal
+                            const modal = new bootstrap.Modal(document.getElementById('etherpadModal'));
+                            modal.show();
+                        } else {
+                            throw new Error(data.message || 'Failed to create paper pad');
+                        }
+                    } catch (error) {
+                        console.error('Error opening paper pad:', error);
+                        alert('Failed to open paper pad. Please try again.');
+                    }
+                });
+                paperButton.addEventListener('mousedown', createRipple);
+            }
         }
         
         function renderProjectAbstract(project) {
@@ -2647,7 +1369,7 @@
                     <h3 class="section-title">Abstract</h3>
                     <p>${enhancedAbstract}</p>
                     <div class="d-flex justify-content-end mt-3">
-                        <small class="text-muted fst-italic">Last updated: ${formatDate(project.updatedAt)}</small>
+                        <small class="fst-italic" style="color: #ffffff !important;">Last updated: ${formatDate(project.updatedAt)}</small>
                     </div>
                 `;
                 
@@ -2708,7 +1430,7 @@
                         <h3 class="section-title">Description</h3>
                         <div>${formattedDescription}</div>
                         <div class="d-flex justify-content-end mt-3">
-                            <small class="text-muted fst-italic">Last updated: ${formatDate(project.updatedAt)}</small>
+                            <small class="fst-italic" style="color: #ffffff !important;">Last updated: ${formatDate(project.updatedAt)}</small>
                         </div>
                     </div>
                 `;
@@ -2734,8 +1456,23 @@
             const updatedDate = formatDate(project.updatedAt);
             
             // Generate supervisor info if available
-            const supervisorInfo = project.supervisor ? 
-                `<p><i class="bi bi-person-badge me-2"></i><strong>Supervisor:</strong> ${project.supervisor.name || (typeof project.supervisor === 'string' ? project.supervisor : (project.supervisor.$oid || 'Unknown'))}</p>` : '';
+            let supervisorInfo = '';
+            if (project.supervisor) {
+                const supervisorName = project.supervisor.name || (typeof project.supervisor === 'string' ? project.supervisor : (project.supervisor.$oid || 'Unknown'));
+                const supervisorId = project.supervisor.userId ? (project.supervisor.userId.$oid || project.supervisor.userId) : null;
+                
+                if (supervisorId) {
+                    // Create clickable supervisor link
+                    createProfileLink(supervisorName, supervisorId, 'faculty').then(linkedName => {
+                        const supervisorInfoEl = document.querySelector('.supervisor-info-display');
+                        if (supervisorInfoEl) {
+                            supervisorInfoEl.innerHTML = linkedName;
+                        }
+                    });
+                }
+                
+                supervisorInfo = `<p><i class="bi bi-person-badge me-2"></i><strong>Supervisor:</strong> <span class="supervisor-info-display">${supervisorName}</span></p>`;
+            }
             
             infoEl.innerHTML = `
                 <p><i class="bi bi-mortarboard-fill me-2"></i><strong>Field:</strong> ${project.field || 'Not specified'}</p>
@@ -2751,7 +1488,7 @@
             const membersEl = document.getElementById('team-members');
             
             if (!project.members || project.members.length === 0) {
-                membersEl.innerHTML = '<p class="text-muted">No team members listed</p>';
+                membersEl.innerHTML = '<p style="color: var(--text-secondary);">No team members listed</p>';
                 return;
             }
             
@@ -2762,9 +1499,10 @@
                 (b.contribution || 0) - (a.contribution || 0)
             );
             
-            sortedMembers.forEach(member => {
+            sortedMembers.forEach((member, index) => {
                 const name = member.name || 'Unnamed Member';
                 const role = member.role || 'Team Member';
+                const memberId = member.userId ? (member.userId.$oid || member.userId) : null;
                 
                 // Get contribution level label and icon
                 let contributionLabel = '';
@@ -2791,33 +1529,43 @@
                 
                 // Create progress bar with label
                 const contribution = member.contribution ? `
-                    <div class="progress-label">
-                        <div>Contribution <strong>${member.contribution}%</strong></div>
-                        <div class="progress-percentage">
-                            ${contributionLabel ? `<span class="contribution-level">${contributionLabel}</span>` : ''}
+                    <div class="contribution-section">
+                        <div class="progress-label">
+                            <div class="contribution-text">Contribution <strong>${member.contribution}%</strong></div>
+                            <div class="progress-percentage">
+                                ${contributionLabel ? `<span class="contribution-level">${contributionLabel}</span>` : ''}
+                            </div>
                         </div>
-                    </div>
-                    <div class="progress">
-                        <div class="progress-bar" role="progressbar" style="width: 0%" 
-                        aria-valuenow="${member.contribution}" aria-valuemin="0" aria-valuemax="100">
+                        <div class="progress">
+                            <div class="progress-bar" role="progressbar" style="width: 0%" 
+                            aria-valuenow="${member.contribution}" aria-valuemin="0" aria-valuemax="100">
+                        </div>
                     </div>
                 </div>` : '';
                 
                 membersHTML += `
                     <div class="member-card" data-contribution="${member.contribution || 0}" data-aos="fade-up">
                         <div class="member-name">
-                            <i class="bi bi-person-circle me-2"></i>${name}
+                            <i class="bi bi-person-circle me-2"></i><span class="member-name-display" data-member-id="${memberId || ''}">${name}</span>
                         </div>
                         <div class="member-role">
                             <i class="bi ${roleIcon} me-2"></i>${role}
                         </div>
                         ${contribution}
-                        <div class="member-id">
-                            <i class="bi bi-fingerprint"></i>
-                            <span>ID: ${member.userId?.$oid || member.userId}</span>
-                        </div>
                     </div>
                 `;
+                
+                // Check if member has a profile and make it clickable
+                if (memberId) {
+                    setTimeout(() => {
+                        createProfileLink(name, memberId, 'student').then(linkedName => {
+                            const memberNameEl = document.querySelector(`[data-member-id="${memberId}"]`);
+                            if (memberNameEl) {
+                                memberNameEl.innerHTML = linkedName;
+                            }
+                        });
+                    }, index * 100); // Stagger the profile checks
+                }
             });
             
             membersEl.innerHTML = membersHTML;
@@ -2836,7 +1584,7 @@
             const keywordsEl = document.getElementById('keywords-container');
             
             if (!project.keywords || project.keywords.length === 0) {
-                keywordsEl.innerHTML = '<p class="text-muted">No keywords listed</p>';
+                keywordsEl.innerHTML = '<p style="color: var(--text-secondary);">No keywords listed</p>';
                 return;
             }
             
@@ -2854,7 +1602,7 @@
             const resourcesEl = document.getElementById('resources-container');
             
             if (!project.files || project.files.length === 0) {
-                resourcesEl.innerHTML = '<p class="text-muted">No files available</p>';
+                resourcesEl.innerHTML = '<p style="color: var(--text-secondary);">No files available</p>';
                 return;
             }
             
@@ -2865,14 +1613,21 @@
                 const size = formatFileSize(file.size);
                 const date = formatDate(file.uploadedAt);
                 
+                // Build secure download URL
+                const filePath = file.path.replace(/^\//, ''); // Remove leading slash
+                const downloadUrl = '/download.php?file=' + encodeURIComponent(filePath);
+                
                 resourcesHTML += `
-                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                        <div>
-                            <i class="${icon} me-2"></i> ${file.name}
-                            <small class="d-block text-muted">${size} - Uploaded on ${date}</small>
+                    <li class="list-group-item">
+                        <div class="file-info">
+                            <div class="file-name">
+                                <i class="${icon} me-2"></i> ${file.name}
+                            </div>
+                            <small class="file-details">${size} - Uploaded on ${date}</small>
                         </div>
-                        <a href="${file.path}" class="btn btn-sm btn-outline-primary" download>
+                        <a href="${downloadUrl}" class="btn btn-sm download-btn">
                             <i class="bi bi-download"></i>
+                            <span class="btn-text">Download</span>
                         </a>
                     </li>
                 `;
@@ -2886,7 +1641,7 @@
             const linksEl = document.getElementById('links-container');
             
             if (!project.links || Object.keys(project.links).length === 0) {
-                linksEl.innerHTML = '<p class="text-muted">No external links available</p>';
+                linksEl.innerHTML = '<p style="color: var(--text-secondary);">No external links available</p>';
                 return;
             }
             
@@ -2945,70 +1700,281 @@
             const timelineEl = document.getElementById('timeline-container');
             
             if (!project.timeline || project.timeline.length === 0) {
-                document.getElementById('project-timeline').style.display = 'none';
+                // Show a polished empty state instead of hiding
+                timelineEl.innerHTML = `
+                    <div class="timeline-empty-state">
+                        <div class="empty-state-icon">
+                            <i class="bi bi-calendar-event"></i>
+                        </div>
+                        <h4>No Timeline Available</h4>
+                        <p>This project doesn't have a timeline yet. Check back later for updates!</p>
+                    </div>
+                `;
                 return;
             }
             
-            let timelineHTML = '';
-            
             // Sort timeline items by date
             const sortedTimeline = [...project.timeline].sort((a, b) => {
-                // Convert dates to comparable values, defaulting to 0 for invalid dates
                 let dateA, dateB;
-                
                 try {
                     dateA = a.date ? new Date(typeof a.date === 'object' && a.date.$date ? a.date.$date : a.date).getTime() : 0;
-                } catch (e) {
-                    dateA = 0;
-                }
-                
+                } catch (e) { dateA = 0; }
                 try {
                     dateB = b.date ? new Date(typeof b.date === 'object' && b.date.$date ? b.date.$date : b.date).getTime() : 0;
-                } catch (e) {
-                    dateB = 0;
-                }
-                
+                } catch (e) { dateB = 0; }
                 return dateA - dateB;
             });
             
-            // Display timeline items
+            // Calculate progress statistics
+            const completedItems = sortedTimeline.filter(item => 
+                item.status && item.status.toLowerCase().includes('completed')).length;
+            const totalItems = sortedTimeline.length;
+            const progressPercentage = totalItems > 0 ? Math.round((completedItems / totalItems) * 100) : 0;
+            
+            // Create the modern timeline HTML
+            let timelineHTML = `
+                <!-- Enhanced Progress Header -->
+                <div class="timeline-progress-header">
+                    <div class="progress-stats">
+                        <div class="progress-circle" data-progress="${progressPercentage}">
+                            <svg class="progress-ring" width="60" height="60">
+                                <circle cx="30" cy="30" r="25" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="3"/>
+                                <circle cx="30" cy="30" r="25" fill="none" stroke="var(--primary-color)" stroke-width="3" 
+                                        stroke-dasharray="157" stroke-dashoffset="${157 - (progressPercentage * 157 / 100)}" 
+                                        stroke-linecap="round" class="progress-bar-circle"/>
+                            </svg>
+                            <div class="progress-text">
+                                <span class="progress-number">${progressPercentage}%</span>
+                </div>
+                        </div>
+                        <div class="progress-details">
+                            <h4>Project Progress</h4>
+                            <p>${completedItems} of ${totalItems} milestones completed</p>
+                            <div class="progress-bar-container">
+                                <div class="progress-bar-modern" style="width: ${progressPercentage}%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Timeline Grid -->
+                <div class="timeline-grid">
+            `;
+            
+            // Display timeline items in a modern grid format
             sortedTimeline.forEach((item, index) => {
                 const date = formatDate(item.date);
-                const status = getStatusBadge(item.status);
-                const side = index % 2 === 0 ? 'timeline-left' : 'timeline-right';
                 const delay = 100 * (index + 1);
+                
+                // Determine status for styling
+                let statusClass = 'pending';
+                let statusIcon = 'bi-clock';
+                let statusText = 'Pending';
+                
+                if (item.status) {
+                    const statusLower = item.status.toLowerCase();
+                    if (statusLower.includes('completed') || statusLower.includes('done') || statusLower.includes('finished')) {
+                        statusClass = 'completed';
+                        statusIcon = 'bi-check-circle-fill';
+                        statusText = 'Completed';
+                    } else if (statusLower.includes('progress') || statusLower.includes('active') || statusLower.includes('ongoing')) {
+                        statusClass = 'in-progress';
+                        statusIcon = 'bi-play-circle-fill';
+                        statusText = 'In Progress';
+                    } else if (statusLower.includes('delayed') || statusLower.includes('overdue')) {
+                        statusClass = 'delayed';
+                        statusIcon = 'bi-exclamation-triangle-fill';
+                        statusText = 'Delayed';
+                    }
+                }
                 
                 // Get appropriate icon based on title or status
                 let icon = 'bi-calendar-event';
-                if (item.title.toLowerCase().includes('research')) icon = 'bi-search';
-                if (item.title.toLowerCase().includes('design')) icon = 'bi-pencil-square';
-                if (item.title.toLowerCase().includes('development')) icon = 'bi-code-slash';
-                if (item.title.toLowerCase().includes('test')) icon = 'bi-check-circle';
-                if (item.title.toLowerCase().includes('review')) icon = 'bi-eye';
-                if (item.title.toLowerCase().includes('presentation')) icon = 'bi-easel';
-                if (item.title.toLowerCase().includes('publication')) icon = 'bi-journal-text';
+                const titleLower = item.title.toLowerCase();
+                if (titleLower.includes('research') || titleLower.includes('study')) icon = 'bi-search';
+                if (titleLower.includes('design') || titleLower.includes('plan')) icon = 'bi-pencil-square';
+                if (titleLower.includes('development') || titleLower.includes('build') || titleLower.includes('code')) icon = 'bi-code-slash';
+                if (titleLower.includes('test') || titleLower.includes('validation')) icon = 'bi-check-circle';
+                if (titleLower.includes('review') || titleLower.includes('evaluation')) icon = 'bi-eye';
+                if (titleLower.includes('presentation') || titleLower.includes('demo')) icon = 'bi-easel';
+                if (titleLower.includes('publication') || titleLower.includes('report')) icon = 'bi-journal-text';
+                if (titleLower.includes('meeting') || titleLower.includes('discussion')) icon = 'bi-people';
+                if (titleLower.includes('analysis') || titleLower.includes('analyze')) icon = 'bi-graph-up-arrow';
+                if (titleLower.includes('implementation') || titleLower.includes('deploy')) icon = 'bi-gear';
+                if (titleLower.includes('documentation') || titleLower.includes('document')) icon = 'bi-file-text';
+                
+                const description = item.description || 'No description available';
+                
+                // Build assigned by name for below title
+                let assignedByNameForTitle = '';
+                if (item.assignedBy) {
+                    // Handle both new and legacy format
+                    if (typeof item.assignedBy === 'object' && item.assignedBy !== null) {
+                        const name = item.assignedBy.name || 'Unknown';
+                        const userId = item.assignedBy.id;
+                        const userType = 'faculty'; // Set explicit faculty type for assignedBy
+                        
+                        // Create a unique placeholder for this assigned by name
+                        const placeholderClass = `assigned-by-placeholder-${index}`;
+                        
+                        // Initialize with just the name, will be replaced with link via createProfileLink
+                        assignedByNameForTitle = `<div class="assigned-by-name ${placeholderClass}">by ${name}</div>`;
+                        
+                        // Attempt to create a profile link asynchronously
+                        if (name && (name !== 'Unknown')) {
+                            // Use the async createProfileLink function to fetch faculty profile
+                            createProfileLink(name, userId, userType).then(linkedName => {
+                                // Update all instances of this placeholder with the linked name
+                                document.querySelectorAll(`.${placeholderClass}`).forEach(el => {
+                                    el.innerHTML = `by ${linkedName}`;
+                                });
+                            }).catch(error => {
+                                console.log('Failed to create faculty profile link:', error);
+                            });
+                        }
+                    } else {
+                        // Legacy format - use async method for this too
+                        const assignedByMember = findMemberById(item.assignedBy, project);
+                        const assignedByName = assignedByMember ? assignedByMember.name : item.assignedBy;
+                        
+                        // Create a unique placeholder for this assigned by name
+                        const placeholderClass = `assigned-by-placeholder-${index}`;
+                        
+                        // Initialize with just the name
+                        assignedByNameForTitle = `<div class="assigned-by-name ${placeholderClass}">by ${assignedByName}</div>`;
+                        
+                        // Try to make it a link if it's a faculty member
+                        if (assignedByName && (assignedByName !== 'Unknown')) {
+                            createProfileLink(assignedByName, item.assignedBy, 'faculty').then(linkedName => {
+                                // Update all instances of this placeholder with the linked name
+                                document.querySelectorAll(`.${placeholderClass}`).forEach(el => {
+                                    el.innerHTML = `by ${linkedName}`;
+                                });
+                            }).catch(error => {
+                                console.log('Failed to create faculty profile link:', error);
+                            });
+                        }
+                    }
+                }
+                
+                // Build assigned to info for bottom (only assigned to, no assigned by)
+                let teamAssignmentInfo = '';
+                if (item.assignedTo && Array.isArray(item.assignedTo) && item.assignedTo.length > 0) {
+                    teamAssignmentInfo = '<div class="timeline-assignments-bottom">';
+                    
+                    // Create placeholders for all assignees
+                    const assigneeData = item.assignedTo.map((assignee, idx) => {
+                        if (typeof assignee === 'object' && assignee !== null) {
+                            // New format
+                            const name = assignee.name || 'Unknown';
+                            const userId = assignee.id;
+                            // Default to student but allow override if specified
+                            const userType = assignee.type || 'student'; 
+                            
+                            return {
+                                name,
+                                userId,
+                                userType,
+                                placeholder: `assignee-${index}-${idx}`
+                            };
+                        } else {
+                            // Legacy format
+                            const assignedToMember = findMemberById(assignee, project);
+                            const name = assignedToMember ? assignedToMember.name : assignee;
+                            
+                            return {
+                                name,
+                                userId: assignee,
+                                userType: null, // Will be determined automatically
+                                placeholder: `assignee-${index}-${idx}`
+                            };
+                        }
+                    });
+                    
+                    // Generate initial placeholder HTML
+                    const assignedToNames = assigneeData.map(data => data.name);
+                    
+                    let assignmentRow = '<div class="assignment-row-inline">';
+                    assignmentRow += `
+                        <div class="assignment-inline">
+                            <span class="assignment-label">Assigned to:</span>
+                            <div class="assignment-badges-inline">
+                    `;
+                    
+                    assigneeData.forEach((data, idx) => {
+                        assignmentRow += `
+                            <span class="assignment-badge assigned-to-badge ${data.placeholder}">
+                                <i class="bi bi-person-check-fill"></i> ${data.name}
+                            </span>
+                        `;
+                        
+                        // Asynchronously update with profile links
+                        if (data.name && (data.name !== 'Unknown')) {
+                            createProfileLink(data.name, data.userId, data.userType).then(linkedName => {
+                                // Update all instances of this placeholder with the linked name
+                                document.querySelectorAll(`.${data.placeholder}`).forEach(el => {
+                                    el.innerHTML = `<i class="bi bi-person-check-fill"></i> ${linkedName}`;
+                                });
+                            }).catch(error => {
+                                console.log(`Failed to create profile link for ${data.name}:`, error);
+                            });
+                        }
+                    });
+                    
+                    assignmentRow += '</div></div>';
+                    assignmentRow += '</div>';
+                    teamAssignmentInfo += assignmentRow + '</div>';
+                }
                 
                 timelineHTML += `
-                    <div class="timeline-item ${side}" data-aos="${side === 'timeline-left' ? 'fade-right' : 'fade-left'}" data-aos-delay="${delay}">
-                        <div class="timeline-content">
-                            <div class="timeline-title">
-                                <i class="bi ${icon} timeline-icon"></i>
-                                ${item.title}
-                                <span class="timeline-status">${status}</span>
+                    <div class="timeline-milestone ${statusClass}" 
+                         data-aos="fade-up" 
+                         data-aos-delay="${delay}"
+                         data-timeline-index="${index}"
+                         onclick="highlightTimelineItem(${index})">
+                        <div class="milestone-icon">
+                            <i class="bi ${icon}"></i>
+                                </div>
+                        <div class="milestone-content">
+                            <div class="milestone-header">
+                                <div class="milestone-title-section">
+                                    <h5 class="milestone-title">${item.title}</h5>
+                                    ${assignedByNameForTitle}
                             </div>
-                            <p class="mb-2">${item.description}</p>
-                            <div class="timeline-date">
-                                <i class="bi bi-clock"></i>${date}
+                                <div class="milestone-date">
+                                    <i class="bi bi-calendar3"></i>
+                                    <span>${date}</span>
+                                </div>
+                                <div class="milestone-status" data-milestone-index="${index}">
+                                    <i class="bi ${statusIcon}"></i>
+                                    <span class="status-display">${statusText}</span>
+                                    <select class="milestone-status-dropdown form-select form-select-sm" style="display: none;" data-milestone-index="${index}">
+                                        <option value="planned" ${statusClass === 'pending' || item.status?.toLowerCase().includes('planned') ? 'selected' : ''}>Planned</option>
+                                        <option value="in-progress" ${statusClass === 'in-progress' || item.status?.toLowerCase().includes('progress') ? 'selected' : ''}>In Progress</option>
+                                        <option value="completed" ${statusClass === 'completed' || item.status?.toLowerCase().includes('completed') ? 'selected' : ''}>Completed</option>
+                                        <option value="delayed" ${statusClass === 'delayed' || item.status?.toLowerCase().includes('delayed') ? 'selected' : ''}>Delayed</option>
+                                    </select>
                             </div>
                         </div>
+                            <p class="milestone-description">${description}</p>
+                            <div class="milestone-meta">
+                                ${item.duration ? `
+                                    <div class="milestone-duration">
+                                        <i class="bi bi-stopwatch"></i>
+                                        <span>${item.duration}</span>
+                                    </div>
+                                ` : ''}
+                            </div>
+                            ${teamAssignmentInfo}
+                        </div>
+                        <div class="milestone-connector"></div>
                     </div>
                 `;
             });
             
-            // Set the HTML content before adding the date labels
-            timelineEl.innerHTML = timelineHTML;
+            timelineHTML += '</div>'; // Close timeline-grid
             
-            // Add labels for start and end dates if available
+            // Add project duration summary
             if (sortedTimeline.length > 0) {
                 const firstItem = sortedTimeline[0];
                 const lastItem = sortedTimeline[sortedTimeline.length - 1];
@@ -3017,19 +1983,661 @@
                     const startDate = formatDate(firstItem.date);
                     const endDate = formatDate(lastItem.date);
                     
-                    // Add a tooltip or label for the start marker
-                    const startMarker = document.createElement('div');
-                    startMarker.className = 'timeline-marker-label timeline-start-label';
-                    startMarker.innerHTML = `<strong>Started:</strong> ${startDate}`;
-                    timelineEl.insertBefore(startMarker, timelineEl.firstChild);
+                    const startDateObj = new Date(typeof firstItem.date === 'object' && firstItem.date.$date ? 
+                        firstItem.date.$date : firstItem.date);
+                    const endDateObj = new Date(typeof lastItem.date === 'object' && lastItem.date.$date ? 
+                        lastItem.date.$date : lastItem.date);
+                    const durationDays = Math.ceil((endDateObj - startDateObj) / (1000 * 60 * 60 * 24));
                     
-                    // Add a tooltip or label for the end marker (kept this part)
-                    const endMarker = document.createElement('div');
-                    endMarker.className = 'timeline-marker-label timeline-end-label';
-                    endMarker.innerHTML = `<strong>Completed:</strong> ${endDate}`;
-                    timelineEl.appendChild(endMarker);
+                    timelineHTML += `
+                        <div class="timeline-summary">
+                            <div class="summary-item">
+                                <i class="bi bi-play-circle"></i>
+                                <span>Started: ${startDate}</span>
+                            </div>
+                            <div class="summary-item">
+                                <i class="bi bi-flag-checkered"></i>
+                                <span>Latest: ${endDate}</span>
+                            </div>
+                            ${durationDays > 0 ? `
+                                <div class="summary-item">
+                                    <i class="bi bi-hourglass-split"></i>
+                                    <span>Duration: ${durationDays} days</span>
+                                </div>
+                            ` : ''}
+                        </div>
+                    `;
                 }
             }
+            
+            timelineEl.innerHTML = timelineHTML;
+            
+            // Initialize timeline enhancements
+            initTimelineEnhancements();
+        }
+        
+        // Helper function to find member by ID
+        function findMemberById(memberId, projectData) {
+            if (!memberId || !projectData) return null;
+            
+            // Handle the new format (object with id and name)
+            if (typeof memberId === 'object' && memberId !== null) {
+                if (memberId.id) {
+                    // If we have an ID, try to find the actual member object for additional info
+                    const foundMember = findMemberByActualId(memberId.id, projectData);
+                    if (foundMember) return foundMember;
+                }
+                
+                // If member not found by ID or no ID, return the object itself as it has name
+                return memberId;
+            }
+            
+            // Legacy format - check project members first
+            if (projectData.members) {
+                const member = projectData.members.find(member => {
+                    const memberUserId = member.userId ? 
+                        (member.userId.$oid || member.userId) : null;
+                    return memberUserId === memberId || member.name === memberId;
+                });
+                
+                if (member) return member;
+            }
+            
+            // Check supervisor
+            if (projectData.supervisor) {
+                const supervisorUserId = projectData.supervisor.userId ? 
+                    (projectData.supervisor.userId.$oid || projectData.supervisor.userId) : null;
+                
+                if (supervisorUserId === memberId || projectData.supervisor.name === memberId) {
+                    return projectData.supervisor;
+                }
+            }
+            
+            return null;
+        }
+        
+        // Helper function to find member by their actual ID
+        function findMemberByActualId(memberId, projectData) {
+            if (!memberId || !projectData) return null;
+            
+            // Check project members first
+            if (projectData.members) {
+                const member = projectData.members.find(member => {
+                    const memberUserId = member.userId ? 
+                        (member.userId.$oid || member.userId) : null;
+                    return memberUserId === memberId;
+                });
+                
+                if (member) return member;
+            }
+            
+            // Check supervisor
+            if (projectData.supervisor) {
+                const supervisorUserId = projectData.supervisor.userId ? 
+                    (projectData.supervisor.userId.$oid || projectData.supervisor.userId) : null;
+                
+                if (supervisorUserId === memberId) {
+                    return projectData.supervisor;
+                }
+            }
+            
+            return null;
+        }
+        
+        // Function to check supervisor access and enable milestone status editing
+        function checkSupervisorAccess(project, loggedInUserId) {
+            if (!loggedInUserId || !project) return;
+            
+            let isSupervisor = false;
+            
+            // Check if current user is the supervisor
+            if (project.supervisor && project.supervisor.userId) {
+                if ((project.supervisor.userId.$oid && project.supervisor.userId.$oid === loggedInUserId) ||
+                    project.supervisor.userId === loggedInUserId) {
+                    isSupervisor = true;
+                }
+            }
+            
+            // If user is supervisor, show dropdowns and hide status text
+            if (isSupervisor) {
+                const statusDisplays = document.querySelectorAll('.milestone-status .status-display');
+                const statusDropdowns = document.querySelectorAll('.milestone-status-dropdown');
+                
+                statusDisplays.forEach(display => {
+                    display.style.display = 'none';
+                });
+                
+                statusDropdowns.forEach(dropdown => {
+                    dropdown.style.display = 'inline-block';
+                    
+                    // Add change event listener
+                    dropdown.addEventListener('change', function() {
+                        const milestoneIndex = this.getAttribute('data-milestone-index');
+                        const newStatus = this.value;
+                        updateMilestoneStatus(milestoneIndex, newStatus);
+                    });
+                });
+                
+                // Store supervisor status globally for other functions
+                window.currentUserIsSupervisor = true;
+            }
+        }
+        
+        // Function to update milestone status
+        function updateMilestoneStatus(milestoneIndex, newStatus) {
+            if (!currentProject || !currentProject._id) {
+                console.error('No current project available');
+                return;
+            }
+            
+            // Show loading state
+            const dropdown = document.querySelector(`[data-milestone-index="${milestoneIndex}"]`);
+            if (dropdown) {
+                dropdown.disabled = true;
+            }
+            
+            // Update the milestone status in current project data
+            if (currentProject.timeline && currentProject.timeline[milestoneIndex]) {
+                currentProject.timeline[milestoneIndex].status = newStatus;
+            }
+            
+            // Prepare FormData like timeline_editor_overlay.php does
+            const data = new FormData();
+            data.append('project_id', currentProject._id.$oid || currentProject._id);
+            data.append('timeline', JSON.stringify(currentProject.timeline));
+            data.append('action', 'update_timeline'); // Same action as timeline editor
+            
+            console.log('Sending milestone status update via timeline update');
+            console.log('Request data:', {
+                project_id: currentProject._id.$oid || currentProject._id,
+                action: 'update_timeline',
+                milestone_index: milestoneIndex,
+                new_status: newStatus
+            });
+            
+            // Determine correct path to update_project.php (same logic as timeline editor)
+            let basePath = '';
+            if (window.location.pathname.includes('/Project_details.php')) {
+                basePath = 'src/model/update_project.php';
+            } else {
+                const pathParts = window.location.pathname.split('/');
+                if (pathParts.length > 2) {
+                    basePath = '../src/model/update_project.php';
+                } else {
+                    basePath = 'src/model/update_project.php';
+                }
+            }
+            
+            console.log('Using path for update_project.php:', basePath);
+            
+            // Send to server using same method as timeline editor
+            fetch(basePath, {
+                method: 'POST',
+                body: data
+            })
+            .then(response => {
+                console.log('Response received:', response.status);
+                if (!response.ok) {
+                    throw new Error(`Server responded with status ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(result => {
+                console.log('Response data:', result);
+                
+                if (result.success) {
+                    // Fetch current user info and send system message like timeline editor does
+                    fetch('src/model/get_current_user.php')
+                    .then(response => response.json())
+                    .then(userData => {
+                        // Get user name from response or use fallback
+                        let currentUserName = 'Someone';
+                        if (userData && userData.success && userData.isLoggedIn && userData.user) {
+                            currentUserName = userData.user.name || 'Someone';
+                        }
+                        
+                        // Send system message based on assigned person and status
+                        const milestone = currentProject.timeline[milestoneIndex];
+                        const milestoneTitle = milestone?.title || 'a milestone';
+                        
+
+                        
+                        // Get assigned person(s) for personalized message
+                        let assignedPersonName = null;
+                        
+                        // Check if there are assigned people (assignedTo takes priority over assignedBy)
+                        if (milestone?.assignedTo && Array.isArray(milestone.assignedTo) && milestone.assignedTo.length > 0) {
+                            // Get first assigned person's name for the message
+                            const firstAssignee = milestone.assignedTo[0];
+                            if (typeof firstAssignee === 'object' && firstAssignee.name) {
+                                assignedPersonName = firstAssignee.name;
+                            } else if (typeof firstAssignee === 'string') {
+                                // Try to find member by ID or use the string directly
+                                const member = findMemberById(firstAssignee, currentProject);
+                                assignedPersonName = member ? member.name : firstAssignee;
+                            }
+                            
+                            // Handle multiple assignees
+                            if (milestone.assignedTo.length > 1) {
+                                assignedPersonName += " and " + (milestone.assignedTo.length - 1) + " other" + (milestone.assignedTo.length > 2 ? "s" : "");
+                            }
+                        } else if (milestone?.assignedBy) {
+                            // Fall back to assignedBy if no assignedTo
+                            if (typeof milestone.assignedBy === 'object' && milestone.assignedBy.name) {
+                                assignedPersonName = milestone.assignedBy.name;
+                            } else if (typeof milestone.assignedBy === 'string') {
+                                const member = findMemberById(milestone.assignedBy, currentProject);
+                                assignedPersonName = member ? member.name : milestone.assignedBy;
+                            }
+                        }
+                        
+                        // Create status-specific message
+                        let systemMessage = '';
+                        
+                        if (assignedPersonName) {
+                            switch (newStatus.toLowerCase()) {
+                                case 'completed':
+                                    systemMessage = `🎉 ${assignedPersonName} completed "${milestoneTitle}"!`;
+                                    break;
+                                case 'in-progress':
+                                    // Handle grammar for multiple assignees
+                                    const isPlural = assignedPersonName.includes(' and ') || assignedPersonName.includes(' others');
+                                    systemMessage = `⚡ ${assignedPersonName} ${isPlural ? 'are' : 'is'} working on "${milestoneTitle}".`;
+                                    break;
+                                case 'delayed':
+                                    systemMessage = `⏰ ${assignedPersonName} needs more time for "${milestoneTitle}".`;
+                                    break;
+                                case 'planned':
+                                    systemMessage = `📋 "${milestoneTitle}" has been planned for ${assignedPersonName}.`;
+                                    break;
+                                default:
+                                    systemMessage = `📝 ${assignedPersonName} updated "${milestoneTitle}" status to ${newStatus.charAt(0).toUpperCase() + newStatus.slice(1).replace('-', ' ')}.`;
+                            }
+                        } else {
+                            // Fallback to original format if no assigned person
+                            const statusDisplay = newStatus.charAt(0).toUpperCase() + newStatus.slice(1).replace('-', ' ');
+                            systemMessage = `${currentUserName} updated milestone "${milestoneTitle}" status to ${statusDisplay}.`;
+                        }
+                        
+                        const systemMessageData = new FormData();
+                        systemMessageData.append('projectId', currentProject._id.$oid || currentProject._id);
+                        systemMessageData.append('message', systemMessage);
+                        
+                        // Send the system message
+                        return fetch('src/model/send_system_chat_message.php', {
+                            method: 'POST',
+                            body: systemMessageData
+                        });
+                    })
+                    .then(response => response.json())
+                    .then(msgResult => {
+                        console.log('System message result:', msgResult);
+                    })
+                    .catch(error => {
+                        console.error('Error sending system message:', error);
+                    });
+                    
+                    // Re-render timeline to reflect changes
+                    renderTimeline(currentProject);
+                    
+                    // Re-enable supervisor access after timeline re-render
+                    setTimeout(() => {
+                        const loggedInUserId = <?php echo isset($_SESSION['user_id']) ? "'" . $_SESSION['user_id'] . "'" : 'null'; ?>;
+                        checkSupervisorAccess(currentProject, loggedInUserId);
+                    }, 100);
+                    
+                    // Show success message
+                    showStatusUpdateMessage('Milestone status updated successfully!', 'success');
+                } else {
+                    console.error('Error updating milestone status:', result.message);
+                    showStatusUpdateMessage('Failed to update milestone status: ' + (result.message || 'Unknown error'), 'error');
+                    
+                    // Revert the change in local data
+                    const originalStatus = getCurrentStatusFromTimeline(milestoneIndex);
+                    if (currentProject.timeline && currentProject.timeline[milestoneIndex]) {
+                        currentProject.timeline[milestoneIndex].status = originalStatus;
+                    }
+                    
+                    // Revert dropdown value
+                    if (dropdown) {
+                        dropdown.value = originalStatus;
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error updating milestone status:', error);
+                
+                // Revert the change in local data
+                const originalStatus = getCurrentStatusFromTimeline(milestoneIndex);
+                if (currentProject.timeline && currentProject.timeline[milestoneIndex]) {
+                    currentProject.timeline[milestoneIndex].status = originalStatus;
+                }
+                
+                let errorMessage = 'An error occurred while updating the milestone status';
+                if (error.message) {
+                    errorMessage += ': ' + error.message;
+                }
+                
+                showStatusUpdateMessage(errorMessage, 'error');
+                
+                // Revert dropdown value
+                if (dropdown) {
+                    dropdown.value = originalStatus;
+                }
+            })
+            .finally(() => {
+                // Re-enable dropdown
+                if (dropdown) {
+                    dropdown.disabled = false;
+                }
+            });
+        }
+        
+        // Helper function to get current status from timeline
+        function getCurrentStatusFromTimeline(milestoneIndex) {
+            if (currentProject && currentProject.timeline && currentProject.timeline[milestoneIndex]) {
+                const status = currentProject.timeline[milestoneIndex].status || 'planned';
+                return status.toLowerCase().replace(/\s+/g, '-');
+            }
+            return 'planned';
+        }
+        
+        // Function to show status update messages
+        function showStatusUpdateMessage(message, type) {
+            // Create or update notification element
+            let notification = document.getElementById('milestone-status-notification');
+            if (!notification) {
+                notification = document.createElement('div');
+                notification.id = 'milestone-status-notification';
+                notification.style.cssText = `
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    padding: 12px 20px;
+                    border-radius: 8px;
+                    color: white;
+                    font-weight: 500;
+                    z-index: 10000;
+                    opacity: 0;
+                    transition: opacity 0.3s ease;
+                `;
+                document.body.appendChild(notification);
+            }
+            
+            // Set message and style based on type
+            notification.textContent = message;
+            notification.className = type === 'success' ? 'alert-success' : 'alert-danger';
+            notification.style.backgroundColor = type === 'success' ? '#059669' : '#dc2626';
+            
+            // Show notification
+            notification.style.opacity = '1';
+            
+            // Hide after 3 seconds
+            setTimeout(() => {
+                notification.style.opacity = '0';
+            }, 3000);
+        }
+        
+        // Add timeline enhancement functions
+        function initTimelineEnhancements() {
+            // Add scroll-based progress animation
+            function updateTimelineProgress() {
+                const timelineContainer = document.getElementById('timeline-container');
+                const progressLine = document.getElementById('timeline-progress');
+                const progressIndicator = document.getElementById('progress-indicator');
+                
+                if (!timelineContainer || !progressLine) return;
+                
+                const containerRect = timelineContainer.getBoundingClientRect();
+                const windowHeight = window.innerHeight;
+                const containerTop = containerRect.top;
+                const containerHeight = containerRect.height;
+                
+                // Calculate scroll progress
+                let scrollProgress = 0;
+                if (containerTop < windowHeight && containerTop + containerHeight > 0) {
+                    const visibleHeight = Math.min(windowHeight - Math.max(containerTop, 0), 
+                        containerHeight - Math.max(0, -containerTop));
+                    scrollProgress = Math.max(0, Math.min(1, visibleHeight / containerHeight));
+                }
+                
+                // Update progress line
+                progressLine.style.height = `${scrollProgress * 100}%`;
+                
+                // Update progress indicator visibility
+                if (progressIndicator) {
+                    progressIndicator.style.opacity = scrollProgress > 0.1 ? '1' : '0';
+                    progressIndicator.style.transform = `translateX(-50%) translateY(${scrollProgress < 0.1 ? '-20px' : '0'})`;
+                }
+                
+                // Debug: Log scroll progress (remove this in production)
+                if (scrollProgress > 0) {
+                    console.log('Timeline scroll progress:', scrollProgress);
+                }
+            }
+            
+            // Add event listeners
+            window.addEventListener('scroll', updateTimelineProgress, { passive: true });
+            window.addEventListener('resize', updateTimelineProgress, { passive: true });
+            
+            // Initial call
+            setTimeout(updateTimelineProgress, 100);
+            
+            // Add intersection observer for timeline items
+            const timelineItems = document.querySelectorAll('.timeline-item');
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('timeline-visible');
+                        // Add a subtle pulse effect when item comes into view
+                        setTimeout(() => {
+                            const icon = entry.target.querySelector('.timeline-icon');
+                            if (icon) {
+                                icon.style.animation = 'pulse-once 0.6s ease-out';
+                                setTimeout(() => {
+                                    icon.style.animation = '';
+                                }, 600);
+                            }
+                        }, 200);
+                    }
+                });
+            }, {
+                threshold: 0.3,
+                rootMargin: '0px 0px -50px 0px'
+            });
+            
+            timelineItems.forEach(item => observer.observe(item));
+        }
+        
+        // Function to highlight a timeline item when clicked
+        function highlightTimelineItem(index) {
+            // Remove previous highlights
+            document.querySelectorAll('.timeline-item').forEach(item => {
+                item.classList.remove('timeline-highlighted');
+            });
+            
+            // Add highlight to clicked item
+            const clickedItem = document.querySelector(`[data-timeline-index="${index}"]`);
+            if (clickedItem) {
+                clickedItem.classList.add('timeline-highlighted');
+                
+                // Add temporary highlight class
+                setTimeout(() => {
+                    clickedItem.classList.remove('timeline-highlighted');
+                }, 2000);
+                
+                // Scroll item into view smoothly
+                clickedItem.scrollIntoView({ 
+                    behavior: 'smooth', 
+                    block: 'center' 
+                });
+            }
+        }
+        
+        // Function to expand/collapse timeline descriptions
+        function expandDescription(event, index) {
+            event.stopPropagation();
+            const item = document.querySelector(`[data-timeline-index="${index}"]`);
+            const description = item.querySelector('.timeline-description');
+            const button = event.target.closest('button');
+            const icon = button.querySelector('i');
+            
+            if (description.classList.contains('expanded')) {
+                // Collapse
+                description.classList.remove('expanded');
+                icon.className = 'bi bi-chevron-down';
+                // Restore truncated text (you'd need to store original text)
+            } else {
+                // Expand
+                description.classList.add('expanded');
+                icon.className = 'bi bi-chevron-up';
+                // Show full text (you'd need to store original text)
+            }
+        }
+        
+        // Add CSS for timeline enhancements
+        const timelineCSS = `
+            <style>
+                .timeline-visible {
+                    opacity: 1 !important;
+                }
+                
+                .timeline-highlighted {
+                    transform: translateY(-10px) !important;
+                    z-index: 100 !important;
+                }
+                
+                .timeline-highlighted .timeline-content {
+                    box-shadow: 
+                        0 25px 50px rgba(0, 0, 0, 0.3),
+                        0 0 50px rgba(76, 201, 240, 0.5),
+                        0 0 100px rgba(76, 201, 240, 0.2) !important;
+                    border-left-width: 8px !important;
+                }
+                
+                .timeline-duration,
+                .timeline-team {
+                    font-size: 0.8rem;
+                    opacity: 0.8;
+                    transition: opacity 0.3s ease;
+                }
+                
+                        .timeline-assignment {
+            font-size: 0.8rem;
+            opacity: 0.8;
+            transition: opacity 0.3s ease;
+            border-left: 2px solid rgba(76, 201, 240, 0.3);
+            padding-left: 8px;
+            margin-top: 8px;
+        }
+        
+        /* New CSS for inline assignment layout */
+        .timeline-assignments-bottom {
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .assignment-row-inline {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            align-items: center;
+        }
+        
+        .assignment-inline {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .assignment-badges-inline {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+        }
+        
+        .assignment-label {
+            font-size: 0.8rem;
+            opacity: 0.8;
+            font-weight: 500;
+        }
+        
+        .assignment-badge {
+            font-size: 0.75rem;
+            padding: 2px 8px;
+            border-radius: 12px;
+            white-space: nowrap;
+        }
+        
+        .assigned-by-badge {
+            background-color: rgba(76, 201, 240, 0.2);
+            color: var(--accent-color);
+            border: 1px solid rgba(76, 201, 240, 0.3);
+        }
+        
+        .assigned-to-badge {
+            background-color: rgba(16, 185, 129, 0.2);
+            color: #10b981;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+        
+        /* Assigned by name below title */
+        .assigned-by-name {
+            font-size: 0.75rem;
+            font-weight: 300;
+            color: var(--text-muted);
+            margin-top: 4px;
+            opacity: 0.8;
+            font-style: italic;
+        }
+                }
+                
+                .timeline-assignment .assignment-by {
+                    margin-bottom: 4px;
+                }
+                
+                .timeline-assignment .assignment-to {
+                    /* Styling handled by Bootstrap classes in JavaScript */
+                }
+                
+                .timeline-assignment .text-primary {
+                    color: #2563eb !important;
+                }
+                
+                .timeline-assignment .text-success {
+                    color: #10b981 !important;
+                }
+                
+                .timeline-assignment i {
+                    font-size: 0.75rem;
+                }
+                
+                .timeline-content:hover .timeline-duration,
+                .timeline-content:hover .timeline-team,
+                .timeline-content:hover .timeline-assignment {
+                    opacity: 1;
+                }
+                
+                .timeline-description.expanded {
+                    max-height: none !important;
+                    overflow: visible !important;
+                }
+                
+                @keyframes pulse-once {
+                    0% { transform: scale(1); }
+                    50% { transform: scale(1.3); }
+                    100% { transform: scale(1); }
+                }
+            </style>
+        `;
+        
+        // Inject the CSS
+        if (!document.querySelector('#timeline-enhancements-css')) {
+            const styleElement = document.createElement('div');
+            styleElement.id = 'timeline-enhancements-css';
+            styleElement.innerHTML = timelineCSS;
+            document.head.appendChild(styleElement);
         }
         
         function renderReferences(project) {
@@ -3074,8 +2682,14 @@
                 const placeholderImage = 'assets/images/Research_Card_Placeholder.png';
                 
                 if (item.type === 'image') {
-                    // Use the actual image URL with fallback to placeholder
-                    const imageUrl = item.url || placeholderImage;
+                    // Use secure download proxy for stored images, or direct URL for external images
+                    let imageUrl = item.url || placeholderImage;
+                    
+                    // If it's a stored image (storage/ or uploads/), use download proxy with inline display
+                    if (imageUrl && (imageUrl.includes('storage/') || imageUrl.includes('uploads/'))) {
+                        const filePath = imageUrl.replace(/^\//, '');
+                        imageUrl = '/download.php?file=' + encodeURIComponent(filePath) + '&inline=1';
+                    }
                     
                     mediaHTML += `
                         <div class="col-sm-6 col-lg-4 mb-4" data-aos="zoom-in" data-aos-delay="${100 * (index + 1)}">
@@ -3095,9 +2709,16 @@
                         </div>
                     `;
                 } else if (item.type === 'video') {
-                    // For videos, we'll need special handling for the iframe
-                    const videoUrl = item.url || '';
+                    // For videos, handle both stored videos and external URLs (YouTube, etc.)
+                    let videoUrl = item.url || '';
                     const videoCaption = item.caption || 'Project video';
+                    
+                    // If it's a stored video (storage/ or uploads/), use download proxy with inline display
+                    if (videoUrl && (videoUrl.includes('storage/') || videoUrl.includes('uploads/')) && 
+                        !videoUrl.includes('youtube.com') && !videoUrl.includes('youtu.be')) {
+                        const filePath = videoUrl.replace(/^\//, '');
+                        videoUrl = '/download.php?file=' + encodeURIComponent(filePath) + '&inline=1';
+                    }
                     
                     mediaHTML += `
                         <div class="col-md-6 mb-4" data-aos="zoom-in" data-aos-delay="${100 * (index + 1)}">
@@ -3108,8 +2729,12 @@
                                 </div>
                                 <div class="ratio ratio-16x9" id="video-container-${index}">
                                     ${videoUrl ? 
-                                        `<iframe src="${videoUrl}" title="${videoCaption}" allowfullscreen
-                                            onerror="handleVideoError(this, '${placeholderImage}')"></iframe>` : 
+                                        (videoUrl.includes('youtube.com') || videoUrl.includes('youtu.be') ?
+                                            `<iframe src="${videoUrl}" title="${videoCaption}" allowfullscreen
+                                                onerror="handleVideoError(this, '${placeholderImage}')"></iframe>` :
+                                            `<video controls class="w-100 h-100" src="${videoUrl}">
+                                                Your browser does not support the video tag.
+                                            </video>`) : 
                                         `<div class="placeholder-bg" style="background-image: url('${placeholderImage}')"></div>`
                                     }
                                 </div>
@@ -3179,7 +2804,7 @@
         // Current image index in lightbox
         let currentImageIndex = 0;
         
-        // Updated lightbox function for placeholder handling
+        // Updated lightbox function for placeholder handling and secure download proxy
         function openLightbox(index) {
             const lightbox = document.getElementById('lightbox');
             const lightboxImage = document.getElementById('lightbox-image');
@@ -3191,8 +2816,15 @@
             const media = window.projectMedia[index];
             const placeholderImage = 'assets/images/Research_Card_Placeholder.png';
             
+            // Use secure download proxy for stored images
+            let imageUrl = media.url || placeholderImage;
+            if (imageUrl && (imageUrl.includes('storage/') || imageUrl.includes('uploads/'))) {
+                const filePath = imageUrl.replace(/^\//, '');
+                imageUrl = '/download.php?file=' + encodeURIComponent(filePath) + '&inline=1';
+            }
+            
             // Set image source and caption
-            lightboxImage.src = media.url || placeholderImage;
+            lightboxImage.src = imageUrl;
             lightboxCaption.textContent = media.caption || '';
             
             // Add error handling for the lightbox image
@@ -3247,42 +2879,80 @@
         function renderStats(project) {
             const statsEl = document.getElementById('stats-container');
             
-            if (!project.stats) {
-                statsEl.innerHTML = '<p class="text-muted">No statistics available</p>';
-                return;
+            // Initialize stats if they don't exist
+            if (!project.stats || typeof project.stats !== 'object') {
+                project.stats = { views: 0, downloads: 0, favorites: 0 };
             }
+            
+            // Ensure numeric values
+            const views = parseInt(project.stats.views) || 0;
+            const downloads = parseInt(project.stats.downloads) || 0;
+            const favorites = parseInt(project.stats.favorites) || 0;
             
             let statsHTML = '<ul class="list-group list-group-flush">';
             
-            if (project.stats.views) {
-                statsHTML += `
-                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                        <span><i class="bi bi-eye me-2"></i>Views</span>
-                        <span class="badge bg-primary rounded-pill">${project.stats.views}</span>
-                    </li>
-                `;
-            }
+            // Always show views (most basic stat)
+            statsHTML += `
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <span><i class="bi bi-eye me-2"></i>Views</span>
+                    <span class="badge bg-primary rounded-pill">${views}</span>
+                </li>
+            `;
             
-            if (project.stats.downloads) {
+            // Show downloads if greater than 0 or if files exist
+            if (downloads > 0 || (project.files && project.files.length > 0)) {
                 statsHTML += `
                     <li class="list-group-item d-flex justify-content-between align-items-center">
                         <span><i class="bi bi-download me-2"></i>Downloads</span>
-                        <span class="badge bg-primary rounded-pill">${project.stats.downloads}</span>
+                        <span class="badge bg-primary rounded-pill">${downloads}</span>
                     </li>
                 `;
             }
             
-            if (project.stats.favorites) {
+            // Always show favorites
+            statsHTML += `
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <span><i class="bi bi-star me-2"></i>Favorites</span>
+                    <span class="badge bg-primary rounded-pill">${favorites}</span>
+                </li>
+            `;
+            
+            // Add team size as a stat
+            const teamSize = (project.members ? project.members.length : 0) + (project.supervisor ? 1 : 0);
+            if (teamSize > 0) {
                 statsHTML += `
                     <li class="list-group-item d-flex justify-content-between align-items-center">
-                        <span><i class="bi bi-star me-2"></i>Favorites</span>
-                        <span class="badge bg-primary rounded-pill">${project.stats.favorites}</span>
+                        <span><i class="bi bi-people me-2"></i>Team Members</span>
+                        <span class="badge bg-success rounded-pill">${teamSize}</span>
+                    </li>
+                `;
+            }
+            
+            // Add file count if files exist
+            if (project.files && project.files.length > 0) {
+                statsHTML += `
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <span><i class="bi bi-file-earmark me-2"></i>Files</span>
+                        <span class="badge bg-info rounded-pill">${project.files.length}</span>
                     </li>
                 `;
             }
             
             statsHTML += '</ul>';
             statsEl.innerHTML = statsHTML;
+            
+            // Add fade-in animation for stats
+            const statItems = statsEl.querySelectorAll('.list-group-item');
+            statItems.forEach((item, index) => {
+                item.style.opacity = '0';
+                item.style.transform = 'translateY(10px)';
+                
+                setTimeout(() => {
+                    item.style.transition = 'all 0.3s ease';
+                    item.style.opacity = '1';
+                    item.style.transform = 'translateY(0)';
+                }, index * 100);
+            });
         }
         
         // Helper functions
@@ -3290,16 +2960,36 @@
             if (!dateString) return 'Not specified';
             
             try {
-                // MongoDB dates can come as objects with $date property or as ISO strings
-                const dateValue = typeof dateString === 'object' && dateString.$date 
-                    ? dateString.$date 
-                    : dateString;
-                    
+                let dateValue = dateString;
+                
+                // Handle MongoDB UTCDateTime objects
+                if (typeof dateString === 'object') {
+                    // MongoDB UTCDateTime format: { "$date": "2024-01-01T00:00:00.000Z" }
+                    if (dateString.$date) {
+                        dateValue = dateString.$date;
+                    }
+                    // MongoDB BSON UTCDateTime format with $numberLong
+                    else if (dateString.$date && dateString.$date.$numberLong) {
+                        dateValue = parseInt(dateString.$date.$numberLong);
+                    }
+                    // Direct timestamp (milliseconds)
+                    else if (typeof dateString === 'object' && dateString.toString && !isNaN(new Date(dateString).getTime())) {
+                        dateValue = dateString.toString();
+                    }
+                    // Try extracting timestamp if it's a complex object
+                    else if (dateString.sec) {
+                        // MongoDB internal timestamp format
+                        dateValue = dateString.sec * 1000; // Convert seconds to milliseconds
+                    }
+                }
+                
+                // Create Date object
                 const date = new Date(dateValue);
                 
                 // Check if date is valid
                 if (isNaN(date.getTime())) {
-                    return 'Invalid date';
+                    console.warn('Invalid date value:', dateString);
+                    return 'Date unavailable';
                 }
                 
                 return date.toLocaleDateString('en-US', { 
@@ -3308,7 +2998,7 @@
                     day: 'numeric'
                 });
             } catch (error) {
-                console.error('Error formatting date:', error);
+                console.error('Error formatting date:', error, 'Input:', dateString);
                 return 'Date format error';
             }
         }
@@ -3494,283 +3184,10 @@
         }
     </script>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Initialize particles.js with more optimized settings
-      particlesJS('particles-js', {
-          "particles": {
-              "number": {
-                  "value": 80,
-                  "density": {
-                      "enable": true,
-                      "value_area": 1000
-                  }
-              },
-              "color": {
-                  "value": ["#4361ee", "#3a0ca3", "#7209b7", "#4cc9f0", "#f72585"]
-              },
-              "shape": {
-                  "type": ["circle", "triangle", "polygon"],
-                  "stroke": {
-                      "width": 0,
-                      "color": "#000000"
-                  },
-                  "polygon": {
-                      "nb_sides": 5
-                  }
-              },
-              "opacity": {
-                  "value": 0.3,
-                  "random": true,
-                  "anim": {
-                      "enable": true,
-                      "speed": 0.8,
-                      "opacity_min": 0.1,
-                      "sync": false
-                  }
-              },
-              "size": {
-                  "value": 12,
-                  "random": true,
-                  "anim": {
-                      "enable": true,
-                      "speed": 2,
-                      "size_min": 3,
-                      "sync": false
-                  }
-              },
-              "line_linked": {
-                  "enable": true,
-                  "distance": 180,
-                  "color": "#7209b7",
-                  "opacity": 0.25,
-                  "width": 1.5
-              },
-              "move": {
-                  "enable": true,
-                  "speed": 1.8,
-                  "direction": "none",
-                  "random": true,
-                  "straight": false,
-                  "out_mode": "bounce",
-                  "bounce": true,
-                  "attract": {
-                      "enable": true,
-                      "rotateX": 500,
-                      "rotateY": 1000
-                  }
-              }
-          },
-          "interactivity": {
-              "detect_on": "window",
-              "events": {
-                  "onhover": {
-                      "enable": true,
-                      "mode": "bubble"
-                  },
-                  "onclick": {
-                      "enable": true,
-                      "mode": "push"
-                  },
-                  "resize": true
-              },
-              "modes": {
-                  "grab": {
-                      "distance": 140,
-                      "line_linked": {
-                          "opacity": 0.8
-                      }
-                  },
-                  "bubble": {
-                      "distance": 150,
-                      "size": 16,
-                      "duration": 1.5,
-                      "opacity": 0.8,
-                      "speed": 3
-                  },
-                  "repulse": {
-                      "distance": 150,
-                      "duration": 0.4
-                  },
-                  "push": {
-                      "particles_nb": 6
-                  },
-                  "remove": {
-                      "particles_nb": 2
-                  }
-              }
-          },
-          "retina_detect": true
-      });
-      // Function to reinitialize particles if they stop
-      function reinitializeParticlesIfNeeded() {
-          if (window.pJSDom && window.pJSDom[0] && window.pJSDom[0].pJS) {
-              const pJS = window.pJSDom[0].pJS;
-              if (!pJS.particles.move.enable || pJS.particles.array.length === 0) {
-                  console.log("Reinitializing particles...");
-                  pJS.particles.move.enable = true;
-                  
-                  // First try to refresh existing particles
-                  try {
-                      pJS.fn.particlesRefresh();
-                  } catch (error) {
-                      console.error("Error refreshing particles:", error);
-                      
-                      // If refreshing fails, destroy and recreate
-                      try {
-                          window.pJSDom[0].pJS.fn.vendors.destroypJS();
-                          window.pJSDom = [];
-                          particlesJS('particles-js', /* same config as above */);
-                      } catch (err) {
-                          console.error("Failed to reinitialize particles:", err);
-                      }
-                  }
-              }
-          } else {
-              // If pJSDom is missing, reinitialize
-              particlesJS('particles-js', /* same config as above */);
-          }
-      }
-      
-      // Add scroll effect to particles for depth
-      let lastScrollY = window.scrollY;
-      window.addEventListener('scroll', function() {
-          const canvas = document.querySelector('#particles-js canvas');
-          if (canvas) {
-              const scrollDifference = window.scrollY - lastScrollY;
-              lastScrollY = window.scrollY;
-              
-              // Apply enhanced parallax effect to particles
-              const particles = window.pJSDom[0].pJS.particles;
-              particles.array.forEach(particle => {
-                  particle.y -= scrollDifference * 0.05;
-                  
-                  // Add slight horizontal movement for more dynamic effect
-                  if (Math.random() > 0.5) {
-                      particle.x += Math.random() * 0.2 - 0.1;
-                  }
-              });
-          }
-      });
-      
-      // Create periodic wave effects through particles
-      setInterval(() => {
-          if (window.pJSDom && window.pJSDom[0] && window.pJSDom[0].pJS) {
-              const particles = window.pJSDom[0].pJS.particles;
-              
-              // Only proceed if particles are moving
-              if (!particles.move.enable) {
-                  reinitializeParticlesIfNeeded();
-                  return;
-              }
-              
-              const centerX = window.innerWidth / 2;
-              const centerY = window.innerHeight / 2;
-              
-              particles.array.forEach(particle => {
-                  // Calculate distance from center
-                  const dx = particle.x - centerX;
-                  const dy = particle.y - centerY;
-                  const distance = Math.sqrt(dx * dx + dy * dy);
-                  
-                  // Create a wave effect
-                  const direction = distance > 0 ? (dx / distance) : 0;
-                  
-                  // Push particles slightly outward in a wave
-                  particle.x += direction * 2;
-                  
-                  // Reset particles that go too far
-                  if (particle.x > window.innerWidth) {
-                      particle.x = 0;
-                  } else if (particle.x < 0) {
-                      particle.x = window.innerWidth;
-                  }
-              });
-          } else {
-              reinitializeParticlesIfNeeded();
-          }
-      }, 5000);
-      
-      // Ensure particles always stay active, check every 2 seconds
-      setInterval(() => {
-          reinitializeParticlesIfNeeded();
-      }, 2000);
-      
-      // Make canvas and particles container un-clickable to prevent stopping animation
-      const particlesContainer = document.getElementById('particles-js');
-      if (particlesContainer) {
-          particlesContainer.addEventListener('click', function(e) {
-              e.stopPropagation();
-              e.preventDefault();
-              
-              // Create burst effect without stopping the animation
-              const burst = document.createElement('div');
-              burst.classList.add('particle-burst');
-              burst.style.left = e.pageX + 'px';
-              burst.style.top = e.pageY + 'px';
-              document.body.appendChild(burst);
-              
-              setTimeout(() => {
-                  burst.remove();
-              }, 1000);
-              
-              return false;
-          }, true);
-      }
-      
-      // Add global click handler for adding particles but prevent it from stopping animation
-      document.addEventListener('click', function(e) {
-          // Don't create particles for clicks on interactive elements
-          if (e.target.closest('a, button, input, .search-box, .toggle-btn')) {
-              return;
-          }
-          
-          if (window.pJSDom && window.pJSDom[0] && window.pJSDom[0].pJS) {
-              const pJS = window.pJSDom[0].pJS;
-              
-              // Use a safer method: create a new particle directly through pJS API
-              try {
-                  for (let i = 0; i < 8; i++) {
-                      const posX = e.clientX + ((Math.random() - 0.5) * 20);
-                      const posY = e.clientY + ((Math.random() - 0.5) * 20);
-                      
-                      // Use the particle creation method from particles.js
-                      pJS.fn.modes.pushParticles(1, {x: posX, y: posY});
-                  }
-              } catch (error) {
-                  console.error("Error adding particles on click:", error);
-                  // If there's an error, ensure animation is still running
-                  setTimeout(reinitializeParticlesIfNeeded, 200);
-              }
-          }
-          
-          // Don't stop propagation - just make sure particles keep running
-          setTimeout(reinitializeParticlesIfNeeded, 500);
-      });
-      
-      // Handle window focus/blur events to ensure particles keep moving
-      window.addEventListener('blur', function() {
-          // When window loses focus, set a timer to keep checking
-          window.particleCheckInterval = setInterval(reinitializeParticlesIfNeeded, 1000);
-      });
-      
-      window.addEventListener('focus', function() {
-          // When window regains focus, clear the intensive check interval
-          if (window.particleCheckInterval) {
-              clearInterval(window.particleCheckInterval);
-          }
-          
-          // Do a single check and reinitialize if needed
-          reinitializeParticlesIfNeeded();
-      });
-      
-      // Add fade-in effect for particles
-      setTimeout(() => {
-          document.body.classList.add('loaded');
-      }, 300);
-
-    });
-    </script>
+    <script src="assets/js/project-details.js" defer></script>
+    
+    <!-- Include Global Meeting Notifications -->
+    <?php include 'src/includes/global-meeting-notifications.php'; ?>
     
 </body>
 </html> 

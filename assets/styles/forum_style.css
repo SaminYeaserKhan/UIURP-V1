@@ -1,69 +1,251 @@
+/* Forum Styles */
 body {
-    font-family: Arial, sans-serif;
-    background-color: #f4f4f4;
-    margin: 0;
-    padding: 20px;
+    background-color: #f8f9fa;
+    padding-top: 70px; /* Space for fixed navbar */
 }
 
 .container {
-    max-width: 800px;
-    margin: auto;
-    background: white;
-    padding: 20px;
-    border-radius: 5px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    max-width: 1200px;
+    margin: 0 auto;
 }
 
-h1 {
-    text-align: center;
+/* Post styling */
+.forum-post {
+    margin-bottom: 1.5rem;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    transition: transform 0.2s, box-shadow 0.2s;
 }
 
-.post-form {
-    margin-bottom: 20px;
+.forum-post:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
-input[type="text"], textarea {
-    width: 100%;
-    padding: 10px;
-    margin: 5px 0;
-    border: 1px solid #ccc;
-    border-radius: 5px;
+.post-header {
+    padding: 1rem;
+    background-color: #fff;
+    border-bottom: 1px solid #eee;
 }
 
-button {
-    padding: 10px;
-    border: none;
-    background-color: #007bff;
-    color: white;
-    border-radius: 5px;
-    cursor: pointer;
+.post-content {
+    padding: 1.25rem;
+    background-color: #fff;
 }
 
-button:hover {
-    background-color: #0056b3;
+.post-footer {
+    padding: 0.75rem 1rem;
+    background-color: #f9f9f9;
+    border-top: 1px solid #eee;
 }
 
-.post {
-    border: 1px solid #ccc;
-    margin: 10px 0;
-    padding: 10px;
-    border-radius: 5px;
+.post-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
 }
 
-.post h2 {
-    margin: 0;
-}
-
-.vote-buttons {
+.post-meta {
     display: flex;
     justify-content: space-between;
-    margin-top: 10px;
+    align-items: center;
 }
 
-.vote-buttons button {
+.post-author {
+    display: flex;
+    align-items: center;
+}
+
+.author-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-right: 0.75rem;
+}
+
+/* Tag styling */
+.post-tags {
+    margin-bottom: 1rem;
+}
+
+.post-tag {
+    display: inline-block;
+    padding: 0.2rem 0.5rem;
+    margin-right: 0.5rem;
+    margin-bottom: 0.5rem;
+    border-radius: 2rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #fff;
+}
+
+.tag-member_recruitment { background-color: #28a745; }
+.tag-bug_fixes { background-color: #dc3545; }
+.tag-discussion { background-color: #007bff; }
+.tag-tutorial { background-color: #17a2b8; }
+.tag-announcement { background-color: #ffc107; color: #212529; }
+.tag-question { background-color: #6f42c1; }
+.tag-resource { background-color: #fd7e14; }
+
+/* Comment section */
+.comment-section {
+    padding-top: 1rem;
+    margin-top: 1rem;
+    border-top: 1px solid #eee;
+}
+
+.comment {
+    padding: 0.75rem;
+    margin-bottom: 0.75rem;
+    background-color: #f9f9f9;
+    border-radius: 4px;
+}
+
+.comment:last-child {
+    margin-bottom: 0;
+}
+
+.comment-author {
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+}
+
+.comment-content {
+    margin-bottom: 0.5rem;
+}
+
+.comment-time {
+    font-size: 0.75rem;
+    color: #6c757d;
+}
+
+.add-comment-form textarea {
+    resize: vertical;
+    min-height: 80px;
+}
+
+/* Attachments */
+.attachments {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 1rem;
+    margin-top: 1.5rem;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.134);
+    border-radius: 8px;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.attachment-item {
+    position: relative;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.attachment-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.attachment-img {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+    border-radius: 8px 8px 0 0;
+    border: none;
+    display: block;
+}
+
+.attachment-file {
+    padding: 0.75rem;
+    background: rgba(0, 69, 167, 0.106);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    color: #333;
+    text-decoration: none;
+    font-size: 0.9rem;
+    min-height: 48px;
+    transition: background-color 0.2s ease;
+}
+
+.attachment-file:hover {
+    background: #f8f9fa;
+}
+
+.attachment-file i {
+    margin-right: 0.75rem;
+    font-size: 1.2rem;
+    color: #666;
+}
+
+.attachment-file span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Post creation form */
+.form-section {
+    margin-bottom: 1.5rem;
+}
+
+.tag-checkbox {
+    display: none;
+}
+
+.tag-label {
+    display: inline-block;
+    padding: 0.3rem 0.6rem;
+    margin: 0.2rem;
+    border-radius: 2rem;
+    cursor: pointer;
+    font-size: 0.8rem;
+    transition: all 0.2s;
+}
+
+.tag-checkbox:checked + .tag-label {
+    box-shadow: 0 0 0 2px #fff, 0 0 0 4px currentColor;
+}
+
+/* Buttons and action elements */
+.upvote-btn.btn-success {
     background-color: #28a745;
+    border-color: #28a745;
 }
 
-.vote-buttons button:hover {
-    background-color: #218838;
+.upvote-btn.btn-outline-success:hover {
+    background-color: #28a745;
+    border-color: #28a745;
+    color: #fff;
+}
+
+.toggle-comments-btn.btn-primary {
+    background-color: #007bff;
+    border-color: #007bff;
+}
+
+.toggle-comments-btn.btn-outline-primary:hover {
+    background-color: #007bff;
+    border-color: #007bff;
+    color: #fff;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .post-meta {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .post-actions {
+        margin-top: 0.5rem;
+        align-self: flex-end;
+    }
 }

@@ -36,6 +36,12 @@ foreach ($cursor as $document) {
         }
     }
     
+    if (isset($document['estimatedCompletionDate'])) {
+        if (is_object($document['estimatedCompletionDate']) && method_exists($document['estimatedCompletionDate'], 'toDateTime')) {
+            $document['estimatedCompletionDate'] = $document['estimatedCompletionDate']->toDateTime()->format('c');
+        }
+    }
+    
     // Also handle dates in nested objects like timeline entries, file uploads, etc.
     if (isset($document['timeline']) && is_array($document['timeline'])) {
         foreach ($document['timeline'] as &$item) {

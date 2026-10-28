@@ -1,0 +1,164 @@
+UIURP Project Deep Dive
+
+Purpose
+- A PHP + MongoDB web portal for university research collaboration: projects, profiles (students/faculty), chat, files, literature matrix, meetings & notifications, forum, events, and personalized recommendations.
+
+High-Level Architecture
+- Server: Procedural PHP (no framework). Pages at repo root, APIs in `src/model/` and `src/controller/`, shared includes in `src/includes/`.
+- DB: MongoDB Atlas (hardcoded URI in many files). Wrapper `src/model/db_connect.php` provides `connectToDatabase()`; some scripts instantiate `new MongoDB\Client(...)` directly.
+- Frontend: Vanilla JS for performance, preference tracking, chat overlay, and page UIs (`assets/js/`, `assets/scripts/`). Styling in `assets/styles/`.
+- Includes: Navbar/footer and globally-injected behavior (meeting notifications, preference tracker, chat overlay).
+
+Core Collections (observed)
+- `students`: Student profiles (newer structure nest fields under `basic_info`, `contact_info`, `academic_info`, plus `university_research_profile`, `platform_settings`).
+- `faculties`: Faculty profiles (profile image, department, research fields, projects, prerequisites/resources).
+- `projectsV2`: Main project catalog (title, abstract/description, field, institution, privacy, members[], supervisor, timeline[], keywords/tags, links, stats, media/files, references, createdBy, timestamps).
+- `projects`: Legacy/backup collection (fallback reads/writes still appear in some flows).
+- `forum_posts` (new) and `forum` (legacy): Forum posts with comments, attachments, votes.
+- `project_chat_messages`: Group chat per project with optional attachments.
+- `user_preference_profiles`, `user_interactions`: Preference tracking and personalization.
+- `schedule`: Personal weekly schedule entries for members.
+- `project_meetings`, `meeting_notifications`: Meetings and notification audit records.
+- `login_info`: Username/password/type/id for simple session login.
+- Misc: `keywords`, `faqs`, `resources` (image lookup), literature matrix.
+
+Authentication & Sessions
+- Login: `src/controller/login_user.php` queries `login_info`, compares plaintext password, loads full profile from `students` or `faculties`, sets session: `logged_in`, `user_type`, `user_id`, `username`, `profile_pic`, `email`, `user_data`.
+- Logout: `logout.php` clears session.
+- Authorization: Endpoints typically check `$_SESSION['logged_in']` and sometimes confirm the caller’s `user_id` matches target resources.
+
+Key User Flows
+1) Profiles
+- Create student profile: `src/controller/create_student_profile.php` (POST form + file upload). Writes structured student doc; handles interests/skills parsing and image upload to `uploads/profile_images/`.
+- Update student profile: `src/controller/update_student_profile.php` (POST form + file upload) writes nested fields with `$set`.
+- Faculty inline edits: UI in `assets/scripts/faculty_profile_inline_edit.js`, writes via `update_faculty.php` (and `src/model/update_faculty_section.php`).
+
+2) Projects
+- Create: `src/model/create_project_debug.php` (POST). Assembles project doc (members, supervisor, timeline, keywords, links, privacy) and inserts into `projectsV2`. Triggers multiple welcome system messages into project chat.
+- Update: `src/model/update_project.php` handles two modes:
+  - Full update: fields, members, supervisor, timeline, keywords, references (JSON or text), stats, comments, links, cover image, media, files; preserves `createdBy`.
+  - Timeline-only: `action=update_timeline` updates timeline and `updatedAt` only.
+  - Uploads go to `uploads/projects/`, `storage/files/`, `storage/media/`.
+- Delete: `src/model/delete_project.php` deletes project (and attempts to remove associated files/media). Extensive logging in `logs/delete_project_debug.log`.
+- Import: `src/model/import_json_projects.php` ingests `assets/json/uiurp.projectsV2.json` with preserved `_id`.
+- Fetch listing: `src/model/fetch_projects.php` (privacy=0), converts BSON dates; `src/model/fetch_projects_by_clicks.php` sorts by a user’s click interactions; `src/model/fetch_recommended_projects.php` returns personalized or fallback projects.
+- Single project: `src/model/get_project.php` fetches from `projectsV2` (fallback `projects`), increments `stats.views`, converts dates.
+- Member data: `src/model/fetch_project_members.php` resolves member/supervisor profiles (student/faculty collections), builds profile links, pictures, emails.
+- Membership leave: `src/model/leave_project.php` removes current user from members/supervisor/creator, deletes project if empty, posts system message.
+
+3) Group Chat
+- UI/overlay: `src/includes/project_chat_overlay.php` (HTML+CSS+JS). Rich pinned overlay with project group list, messages, attachments, members panel, leave-project button. Designed to coexist with the page (pinned or modal mode).
+- Load groups: `src/model/fetch_chat_groups.php` builds the project list where user is creator/member/supervisor (robust matching across legacy/new shapes), fetching latest message preview.
+- Load messages: `src/model/load_chat_messages.php` (projectId, limit, before/after). Resolves sender pic/name from `faculties`/`students`.
+- Send message: `src/model/send_chat_message.php` (POST text) and `src/model/upload_chat_file.php` (file) insert chat docs, update project `updatedAt`, and mark sender’s read timestamp.
+- Unread counts: `src/model/get_unread_messages.php` uses `user_chat_read_timestamps` per project and counts newer messages from others.
+- Mark read: `src/model/update_chat_read.php` upserts per-user/project read timestamp.
+- Get single message: `src/model/get_single_message.php` returns formatted message + attachment meta.
+
+4) Meetings & Schedules
+- Save meeting: `src/model/save_project_meeting.php` validates membership/supervision, writes to `project_meetings`, and posts a system message for near-future meetings.
+- Get meetings by project: `src/model/get_project_meetings.php` (CORS-enabled), returns normalized records and extracted meetingId (from link query).
+- Get meeting by id: `src/model/get_meeting_by_id.php` (CORS-enabled) by `meetingId` field.
+- Notifications: `src/model/send_meeting_notifications.php` scans scenarios (urgent, live, daily), deduplicates via `meeting_notifications`, and posts system messages through `send_system_chat_message_helper.php`.
+- Personal schedules: `src/model/add_schedule.php`, `update_schedule.php`, `delete_schedule.php`, `get_schedule.php` (per-user), plus `get_project_member_schedules.php` (aggregates for all members/supervisor).
+
+5) Forum
+- Submit post: `src/controller/submit_post.php` (attachments -> `uploads/forum_attachments/`).
+- Edit post: `src/controller/edit_post.php` (handles file add/remove, BSON array/doc to PHP array conversion, logging).
+- Comments: `src/controller/add_comment.php`, `edit_comment.php`, `delete_comment.php` support both `forum_posts` and legacy `forum` collections.
+- Delete post: `src/controller/delete_post.php` with attachment cleanup.
+- Fetch (legacy): `src/model/fetch_forum.php` reads `forum`.
+
+6) Preference Tracking & Recommendations
+- Frontend tracker: `assets/js/preference_tracker.js` monitors views, clicks, search, scroll, time; batches and POSTs to `src/model/user_preferences.php` (class `UserPreferences`).
+- Admin dashboard: `src/admin/preference_admin.php` provides simple controls (clean old data, view user stats) using `UserPreferences` and `RecommendationEngine`.
+- Personalized lists: `src/model/fetch_recommended_projects.php` defers to `RecommendationEngine` for user-scored results; indicates if results are personalized.
+
+7) Events & Misc
+- Events page & calendar overlay (`events.php`, `calendar-overlay.php`) with event filters and scheduling helpers.
+- Image/resource lookup: `src/model/fetch_image.php` from `resources`.
+- Keywords & FAQs: `src/model/fetch_keywords.php`, `src/model/search_keyword.php`, `src/model/fetch_faqs.php`.
+
+Includes & Global Behaviors
+- `src/includes/navbar.php`, `footer.php`: shared layout plus hook points for overlays.
+- `src/includes/global-meeting-notifications.php`: injects client polling/UI for meeting reminders.
+- `src/includes/global-preference-tracker.php`: injects `PreferenceTracker` and helpers.
+- `src/includes/project_chat_overlay.php`: large self-contained UI + logic for chat; supports “pinned” chat that reshapes the page to keep chat always visible.
+
+Frontend Utilities
+- Chat overlay JS inside the include (handles pinned mode, backdrop, unread badge updates, file previews, ripple effect, responsive panels).
+- Performance: `assets/js/performance-optimizer.js`, `assets/js/performance-monitor.js`, `assets/js/particles-optimizer.js` (detects device capability and reduces/turns off particles).
+- Timeline debug helper: `assets/js/timeline_debug.js` to validate and normalize timeline data.
+- Faculty/student UI helpers: `assets/scripts/faculty_loader.js`, `faculty_profile_inline_edit.js`, `faculty_project.js`, `resource_update.js`, `assets/scripts/forum_script.js` for forum interactions.
+
+Endpoints Cheat Sheet (representative)
+- Auth: `src/controller/login_user.php`, `logout.php`.
+- Profiles: `src/controller/create_student_profile.php`, `src/controller/update_student_profile.php`, `src/model/get_student_data.php`, `src/model/get_all_students.php`, `src/model/load_students.php`, `src/model/get_faculty_data.php`, `src/model/load_faculty.php`, `src/model/update_faculty_section.php`.
+- Projects: `src/model/create_project_debug.php`, `src/model/update_project.php`, `src/model/delete_project.php`, `src/model/get_project.php`, `src/model/fetch_projects.php`, `src/model/fetch_projects_by_clicks.php`, `src/model/fetch_recommended_projects.php`, `src/model/import_json_projects.php`, `src/model/toggle_project_privacy.php`, `src/model/fetch_project_members.php`, `src/model/fetch_member_projects.php`, `src/model/fetch_all_user_projects.php`.
+- Chat: `src/model/fetch_chat_groups.php`, `src/model/load_chat_messages.php`, `src/model/get_single_message.php`, `src/model/send_chat_message.php`, `src/model/upload_chat_file.php`, `src/model/get_unread_messages.php`, `src/model/update_chat_read.php`.
+- Meetings/Schedules: `src/model/save_project_meeting.php`, `src/model/get_project_meetings.php`, `src/model/get_meeting_by_id.php`, `src/model/send_meeting_notifications.php`, `src/model/add_schedule.php`, `src/model/update_schedule.php`, `src/model/delete_schedule.php`, `src/model/get_schedule.php`, `src/model/get_project_member_schedules.php`.
+- Forum: `src/controller/submit_post.php`, `src/controller/edit_post.php`, `src/controller/add_comment.php`, `src/controller/edit_comment.php`, `src/controller/delete_comment.php`, `src/controller/delete_post.php`, `src/model/fetch_forum.php`.
+- Misc: `src/model/fetch_keywords.php`, `src/model/search_keyword.php`, `src/model/fetch_faqs.php`, `src/model/fetch_image.php`.
+
+Data Model Notes & Edge Handling
+- ObjectId normalization: many endpoints convert flexible formats (string, `{ $oid }`, BSON) to `ObjectId`, and handle legacy arrays/documents defensively.
+- Dates: responses often convert BSON dates to ISO strings for frontend.
+- Project privacy: 0=public, 1=private; toggles via `toggle_project_privacy.php` and used in listings.
+- Stats: `stats.views` incremented in `get_project.php`; some endpoints preserve or update counts.
+- References: `update_project.php` accepts JSON or plain text lines (title | link) and persists normalized array.
+
+File Storage
+- Forum attachments: `uploads/forum_attachments/`.
+- Profile images: `uploads/profile_images/`.
+- Project files: `storage/files/` (per file with generated name).
+- Project media: `storage/media/` (images/videos).
+- Literature review PDFs: `storage/files/literature review/{projectId}/`.
+
+Security & Quality Observations (actionable)
+- Plaintext passwords: `login_user.php` checks raw password from `login_info`. Recommend hashing (bcrypt/argon2) and secure auth flow.
+- Connection string in code: Atlas URI hardcoded across files; centralize into env/config and restrict privileges.
+- CSRF: Forms and JSON APIs lack CSRF tokens; add CSRF protection for state-changing requests.
+- XSS/HTML: Some system messages and user content pass through; generally escaped in places, but audit responses and DOM insertion points (e.g., forum/chat messages).
+- AuthZ consistency: Some endpoints skip strict owner checks for debug/compatibility (e.g., delete/update in some flows). Standardize strict permission checks.
+- Upload validation: MIME/size checks are present, but consider file extension allowlists, antivirus scanning, and storing outside webroot with signed URLs.
+- CORS: Meeting APIs enable CORS for `http://localhost:3000` only; ensure production settings configured.
+- Rate limiting/logging: Consider minimal rate limits and centralized error logging.
+
+Setup & Run (local XAMPP)
+- PHP 8+ recommended; Composer dependencies present (`vendor/`).
+- MongoDB Atlas connection required; update credentials/URI in `src/model/db_connect.php` and any direct `new MongoDB\Client(...)` usages.
+- Web root: project root under XAMPP htdocs (as in your environment). Visit `index.php`.
+- Optional: Seed data via `assets/json/*.json` and `src/model/import_json_projects.php`.
+
+Where Things Live (quick map)
+- Pages: root `index.php`, `Project_details.php`, `project_management.php`, `Research_page.php`, `Faculty_Page.php`, `Faculty_Profile.php`, `Student_Profile*.php`, `events.php`, forum pages, etc.
+- APIs: `src/model/*.php` (data endpoints), `src/controller/*.php` (forum & profile actions).
+- Includes: `src/includes/*.php` (navbar, footer, global trackers, chat overlay).
+- Assets: `assets/js/*.js`, `assets/scripts/*.js`, `assets/styles/*.css`, images/resources.
+- Storage: `uploads/*`, `storage/files/*`, `storage/media/*`.
+- Logs: `logs/*.log`.
+
+How Personalized Recommendations Work (brief)
+- JS tracker collects interactions (view/click/search/scroll/time) and posts to `user_preferences.php`.
+- `RecommendationEngine` scores and returns `projects` with `relevance_score`; fallback to public projects if no personalization.
+- UI surfaces recommended lists via `fetch_recommended_projects.php` (sets `is_personalized`).
+
+Meeting Notifications Lifecycle
+- When meeting saved near-future: posts a system message immediately.
+- Cron/trigger `send_meeting_notifications.php` handles three scenarios:
+  - Urgent (starts in ≤5min), Live (now), Daily (today) with dedupe by `meeting_notifications.notificationKey`.
+
+Forum Attachment Handling Highlights
+- `edit_post.php` and `submit_post.php` create per-file metadata (original name, stored name, type, size, relative path). Deletes remove physical files.
+- Comments and edits respect ownership or admin.
+
+Known Legacy Compatibility
+- Forum (`forum` vs `forum_posts`) and project structures (`projects` vs `projectsV2`) are handled with dual-path lookups where needed.
+- ObjectId fields sometimes appear as strings, `{ $oid }`, or BSON; endpoints normalize inputs aggressively to avoid crashes.
+
+Next Improvements (suggested roadmap)
+- Security: password hashing, CSRF tokens, strict authorization, centralized sanitized outputs.
+- Config: `.env`/config for DB URI, CORS, upload limits, feature flags.
+- API: unify controllers/models into a consistent REST structure (verbs, endpoints, JSON schemas), add tests.
+- Observability: standardize logging, add request IDs, and track errors to a central file/monitor.
+- UI/UX: break out the giant chat overlay into modular JS/CSS; add accessibility and keyboard navigation.

@@ -1,14 +1,80 @@
-# Database connection string (copy config/database.example.php to create it)
-config/database.php
-.env
+# Uploaded Files - DO NOT commit to repository
+# These files are stored on the production server, not in git
 
-# Installed by `composer install`
+# Project files
+storage/files/*
+!storage/files/.gitkeep
+
+# Media files
+storage/media/*
+!storage/media/.gitkeep
+
+# Literature review files
+storage/files/literature review/*
+
+# Chat files
+uploads/chat_files/*
+!uploads/chat_files/.gitkeep
+
+# Forum attachments
+uploads/forum_attachments/*
+!uploads/forum_attachments/.gitkeep
+
+# Profile images (optional - you may want to track default images)
+uploads/profile_images/*
+!uploads/profile_images/.gitkeep
+!uploads/profile_images/user_avater.png
+
+# Keep .htaccess files for security
+!storage/.htaccess
+!uploads/.htaccess
+
+# Cache files
+cache/*
+!cache/.gitkeep
+
+# Logs
+logs/*.log
+
+# Composer
 vendor/
 composer.phar
 
-# Created while the app runs
-logs/
-storage/
+# Environment files
+.env
+.env.local
+.env.production
 
-# macOS
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
 .DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
+tmp/
+
+# Backup files
+*.bak
+*.backup
+backups/
+
+# PHP
+.phpunit.result.cache
+
+# Session files
+sessions/
+
+# Etherpad
+etherpad/etherpad-lite/node_modules/
+etherpad/etherpad-lite/src/node_modules/
+
+# Secret settings (copy config/secrets.example.php to create it)
+config/secrets.php

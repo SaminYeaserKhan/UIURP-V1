@@ -10,13 +10,19 @@ document.addEventListener('DOMContentLoaded', function() {
                     const postDiv = document.createElement('div');
                     postDiv.className = 'forum-post';
                     postDiv.innerHTML = `
+                        <p><strong>Posted by:</strong> ${forum.user_name || 'Unknown'}</p>
                         <h3>${forum.title}</h3>
                         <p>${forum.content}</p>
+                        <p><strong>Tags:</strong> ${forum.tags ? forum.tags.join(', ') : 'None'}</p> <!-- ✅ NEW: tags -->
+                        <p><strong>Posted on:</strong> ${postDate}</p> <!-- ✅ NEW: timestamp -->
                         <p>Views: ${forum.views}</p>
                         <p>Upvotes: ${forum.upvotes}</p>
-                        <p>Downvotes: ${forum.downvotes}</p>
+                        <p>Downvotes: ${forum.downvotes || 0}</p> <!-- ✅ Optional downvotes -->
                         <div class="comments">
-                            ${forum.comments.map(comment => `<p>${comment}</p>`).join('')}
+                            <h4>Comments:</h4>
+                            ${Array.isArray(forum.comments) && forum.comments.length > 0 
+                                ? forum.comments.map(comment => `<p>${comment}</p>`).join('')
+                                : '<p>No comments yet.</p>'} <!-- ✅ Safe check for comments -->
                         </div>
                     `;
 
@@ -59,8 +65,7 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(data => {
             if (data.success) {
                 alert('Post submitted successfully!');
-                // Optionally, you can refresh the posts or add the new post to the DOM
-                location.reload(); // Reload the page to fetch and display the new post
+                window.location.href = 'view_posts.php'; // Redirect to the page that displays the new post
             } else {
                 alert('Error submitting post: ' + data.message);
             }

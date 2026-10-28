@@ -1,15 +1,94 @@
+/* Modern Futuristic Faculty Page CSS */
+:root {
+    /* Modern Futuristic Color Scheme - keeping in sync with navbar */
+    --neo-primary: #4361ee;
+    --neo-secondary: #3a0ca3;
+    --neo-accent: #7209b7;
+    --neo-blue: #4cc9f0;
+    --neo-magenta: #f72585;
+    --neo-light: #f8f9fa;
+    --neo-dark: #121729;
+    
+    /* Theme Variables - Dark Mode (Default) */
+    --bg-primary: #0f172a;
+    --bg-secondary: #1e293b;
+    --bg-tertiary: #334155;
+    --text-primary: #f8fafc;
+    --text-secondary: #cbd5e1;
+    --text-muted: #64748b;
+    --border-color: rgba(76, 201, 240, 0.1);
+    --shadow-color: rgba(0, 0, 0, 0.3);
+    --card-bg: #1e293b;
+    --card-border: rgba(76, 201, 240, 0.2);
+    --card-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    --gradient-primary: linear-gradient(135deg, var(--neo-blue), var(--neo-accent));
+    --gradient-secondary: linear-gradient(135deg, var(--neo-primary), var(--neo-secondary));
+    
+    /* Animation timing */
+    --theme-transition: color 0.4s ease, background-color 0.4s ease, border-color 0.4s ease, box-shadow 0.4s ease;
+}
+
+/* Light Theme Variables */
+[data-theme="light"] {
+    --bg-primary: #ffffff;
+    --bg-secondary: #f8fafc;
+    --bg-tertiary: #e2e8f0;
+    --text-primary: #1e293b;
+    --text-secondary: #475569;
+    --text-muted: #64748b;
+    --border-color: rgba(67, 97, 238, 0.15);
+    --shadow-color: rgba(0, 0, 0, 0.08);
+    --card-bg: #ffffff;
+    --card-border: rgba(67, 97, 238, 0.15);
+    --card-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+}
+
+/* Base Styles */
+body {
+    background: linear-gradient(135deg, #0a0d1a 0%, #1a1a2e 50%, #16213e 100%);
+    color: var(--text-primary);
+    transition: var(--theme-transition);
+}
+
+/* Light Theme Background */
+[data-theme="light"] body {
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 50%, #cbd5e1 100%);
+}
+
+.container {
+    position: relative;
+    z-index: 1;
+}
+
+/* Hero Section Styles */
 .hero-section {
     position: relative;
     width: 100%;
-    height: 400px;
+    height: 500px;
     overflow: hidden;
+    border-radius: 0 0 20px 20px;
+    margin-bottom: 50px;
+    transition: var(--theme-transition);
 }
 
 .hero-image {
     width: 100%;
     height: 100%;
-    object-fit: cover; 
+    object-fit: cover;
     display: block;
+    transform: scale(1.05);
+    filter: brightness(0.7);
+    transition: transform 8s ease, filter 0.4s ease;
+    animation: subtle-zoom 15s infinite alternate;
+}
+
+[data-theme="light"] .hero-image {
+    filter: brightness(0.9);
+}
+
+@keyframes subtle-zoom {
+    0% { transform: scale(1); }
+    100% { transform: scale(1.1); }
 }
 
 .overlay {
@@ -19,54 +98,623 @@
     transform: translate(-50%, -50%);
     text-align: center;
     color: white;
-    background: rgba(0, 0, 0, 0.5); 
-    padding: 20px;
-    border-radius: 10px;
+    background: rgba(18, 23, 41, 0.5);
+    backdrop-filter: blur(10px);
+    padding: 40px;
+    border-radius: 20px;
+    border: 1px solid rgba(76, 201, 240, 0.2);
+    width: 80%;
+    max-width: 800px;
+    z-index: 2;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+    animation: fade-in-up 1s ease-out forwards;
+    transition: var(--theme-transition), backdrop-filter 0.4s ease;
 }
+
+[data-theme="light"] .overlay {
+    background: rgba(255, 255, 255, 0.7);
+    color: var(--text-primary);
+    border-color: rgba(67, 97, 238, 0.15);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+}
+
+.overlay::before {
+    content: '';
+    position: absolute;
+    top: -1px;
+    left: -1px;
+    right: -1px;
+    bottom: -1px;
+    background: linear-gradient(45deg, rgba(76, 201, 240, 0.3), transparent, rgba(114, 9, 183, 0.3));
+    border-radius: inherit;
+    z-index: -1;
+    animation: gradient-rotate 6s linear infinite;
+    transition: opacity 0.4s ease;
+}
+
+[data-theme="light"] .overlay::before {
+    background: linear-gradient(45deg, rgba(56, 189, 248, 0.2), transparent, rgba(79, 70, 229, 0.2));
+    opacity: 0.7;
+}
+
+@keyframes gradient-rotate {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+.overlay h1 {
+    font-size: 3rem;
+    font-weight: 800;
+    margin-bottom: 1rem;
+    background: linear-gradient(to right, var(--neo-blue), var(--neo-magenta));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    text-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+    animation: text-focus-in 1s cubic-bezier(0.55, 0.085, 0.68, 0.53) 0.2s both;
+    transition: text-shadow 0.4s ease;
+}
+
+[data-theme="light"] .overlay h1 {
+    background: linear-gradient(to right, var(--neo-primary), var(--neo-accent));
+    -webkit-background-clip: text;
+    background-clip: text;
+    text-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+}
+
+@keyframes text-focus-in {
+    0% {
+        filter: blur(12px);
+        opacity: 0;
+    }
+    100% {
+        filter: blur(0px);
+        opacity: 1;
+    }
+}
+
+.overlay p {
+    font-size: 1.2rem;
+    line-height: 1.6;
+    opacity: 0;
+    animation: fade-in 1s ease forwards 0.5s;
+    margin: 0;
+    transition: var(--theme-transition);
+}
+
+[data-theme="light"] .overlay p {
+    color: var(--text-secondary);
+}
+
+@keyframes fade-in {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fade-in-up {
+    from { opacity: 0; transform: translate(-50%, -40%); }
+    to { opacity: 1; transform: translate(-50%, -50%); }
+}
+
+/* Grid Background Effect */
+.grid-background {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: 
+        linear-gradient(to right, var(--border-color) 1px, transparent 1px),
+        linear-gradient(to bottom, var(--border-color) 1px, transparent 1px);
+    background-size: 50px 50px;
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.2;
+    transition: opacity 0.4s ease;
+}
+
+[data-theme="light"] .grid-background {
+    opacity: 0.1;
+}
+
+/* Faculty section styling for consistent spacing */
+.faculty-section {
+    padding: 50px 0;
+    transition: var(--theme-transition);
+}
+
+[data-theme="light"] .faculty-section {
+    background-color: rgba(255, 255, 255, 0);
+}
+
+.section-title {
+    color: var(--text-primary);
+    transition: var(--theme-transition);
+}
+
+.section-subtitle {
+    color: var(--text-secondary);
+    transition: var(--theme-transition);
+}
+
+/* Add consistent spacing with Bootstrap 5 gutters */
+.row.g-4 {
+    --bs-gutter-y: 3rem;
+}
+
+/* Faculty Card Styles - Matching the faculty spotlight style */
 .faculty-card {
-    display: flex;
-    flex-direction: column;
-    background: white;
-    border-radius: 10px;
+    position: relative;
+    background: var(--card-bg);
+    border-radius: 16px;
     overflow: hidden;
     text-align: left;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    transition: transform 0.3s ease-in-out;
-    margin-bottom: 30px;
+    box-shadow: var(--card-shadow);
+    border: 1px solid var(--card-border);
+    transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease, background-color 0.4s ease;
+    height: 100%;
+    min-height: 440px;
+    display: flex;
+    flex-direction: column;
+    opacity: 0;
+    transform: translateY(20px);
+    animation: card-appear 0.6s ease-out forwards;
 }
 
 .faculty-card:hover {
     transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
 }
 
-.faculty-img {
+[data-theme="light"] .faculty-card {
+    background: #ffffff;
+    border: 1px solid rgba(67, 97, 238, 0.1);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.05);
+}
+
+[data-theme="light"] .faculty-card:hover {
+    box-shadow: 0 15px 35px rgba(67, 97, 238, 0.1);
+    border-color: rgba(67, 97, 238, 0.2);
+}
+
+.faculty-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
     width: 100%;
-    height: 250px; 
-    object-fit: cover;
+    height: 3px;
+    background: var(--gradient-primary);
+    z-index: 3;
+    opacity: 0;
+    transition: opacity 0.3s ease;
 }
 
+.faculty-card:hover::before {
+    opacity: 1;
+}
+
+/* Image wrapper - no height constraints, just min/max */
+.faculty-img-wrapper {
+    position: relative;
+    overflow: hidden;
+    width: 100%;
+    background-color: var(--bg-tertiary);
+    min-height: 100px; /* Reduced min-height */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    text-align: center; /* Center images horizontally */
+    padding: 0;
+    transition: background-color 0.4s ease;
+}
+
+[data-theme="light"] .faculty-img-wrapper {
+    background-color: #f1f5f9;
+}
+
+/* Image container to handle the loading state */
+.faculty-img-container {
+    position: relative;
+    width: 100%;
+    height: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    transition: var(--theme-transition);
+}
+
+.faculty-img-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: var(--bg-tertiary);
+    z-index: 1;
+    opacity: 1;
+    transition: opacity 0.5s ease, background-color 0.4s ease;
+}
+
+[data-theme="light"] .faculty-img-container::before {
+    background: #f1f5f9;
+}
+
+.faculty-img-container.loaded::before {
+    opacity: 0;
+}
+
+/* Image styling - showing full image */
+.faculty-img {
+    width: auto; /* Allow width to adjust based on height */
+    height: auto;
+    max-width: 100%; /* Ensure it doesn't overflow horizontally */
+    max-height: 320px; /* Limit max height */
+    object-fit: contain;
+    display: block;
+    margin: 0 auto; /* Center image */
+    transition: transform 0.5s ease;
+}
+
+.faculty-card:hover .faculty-img {
+    transform: scale(1.05);
+}
+
+/* Handle placeholder images */
+.faculty-img[src*="imgPlaceholder"] {
+    object-fit: contain;
+    opacity: 0.7;
+    padding: 2rem;
+    height: 280px;
+    transition: opacity 0.4s ease;
+}
+
+[data-theme="light"] .faculty-img[src*="imgPlaceholder"] {
+    opacity: 0.5;
+}
+
+/* Faculty info section - increase padding to compensate for smaller images */
 .faculty-info {
-    padding: 15px;
+    position: relative;
+    padding: 1.75rem;
+    z-index: 2;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    transition: background-color 0.4s ease;
+}
+
+[data-theme="light"] .faculty-info {
+    background: #ffffff;
 }
 
 .faculty-info h4 {
-    font-weight: bold;
+    font-weight: 700;
+    font-size: 1.3rem;
+    margin-bottom: 0.5rem;
+    color: var(--text-primary);
+    transition: var(--theme-transition);
 }
 
 .faculty-info p {
-    font-size: 0.95rem;
-    color: #555;
+    flex-grow: 1;
+    font-size: 1rem;
+    color: var(--text-secondary);
+    margin-bottom: 1rem;
+    line-height: 1.5;
+    transition: var(--theme-transition);
 }
 
+/* Specialty tags */
+.faculty-specialties {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 1rem;
+}
+
+.specialty-tag {
+    padding: 0.3rem 0.75rem;
+    background: var(--bg-tertiary);
+    color: var(--text-secondary);
+    border-radius: 50px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    transition: all 0.3s ease, background-color 0.4s ease, color 0.4s ease;
+}
+
+.faculty-card:hover .specialty-tag {
+    background: var(--neo-primary);
+    color: white;
+    transform: translateY(-2px);
+}
+
+[data-theme="light"] .specialty-tag {
+    background: #e2e8f0;
+    color: var(--text-secondary);
+}
+
+/* Learn more link */
 .learn-more {
-    font-weight: bold;
+    font-weight: 600;
     text-transform: uppercase;
-    color: #007bff;
+    color: var(--neo-blue);
     text-decoration: none;
-    display: inline-block;
-    margin-top: 10px;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.85rem;
+    letter-spacing: 0.5px;
+    position: relative;
+    padding: 5px 0;
+    margin-top: auto;
+    transition: color 0.3s ease;
+}
+
+.learn-more::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background: var(--gradient-primary);
+    transition: width 0.3s ease;
 }
 
 .learn-more:hover {
-    text-decoration: underline;
+    color: var(--neo-magenta);
+}
+
+.learn-more:hover::after {
+    width: 100%;
+}
+
+[data-theme="light"] .learn-more {
+    color: var(--neo-primary);
+}
+
+[data-theme="light"] .learn-more:hover {
+    color: var(--neo-accent);
+}
+
+/* Better loading skeleton */
+.loading-skeleton {
+    position: relative;
+    overflow: hidden;
+    border-radius: 8px;
+    background: var(--bg-tertiary);
+    transition: background-color 0.4s ease;
+}
+
+[data-theme="light"] .loading-skeleton {
+    background: #e2e8f0;
+}
+
+.loading-skeleton::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    transform: translateX(-100%);
+    background-image: linear-gradient(
+        90deg,
+        rgba(255, 255, 255, 0) 0,
+        rgba(255, 255, 255, 0.05) 20%,
+        rgba(255, 255, 255, 0.1) 60%,
+        rgba(255, 255, 255, 0)
+    );
+    animation: shimmer 1.2s ease infinite;
+    transition: background-image 0.4s ease;
+}
+
+[data-theme="light"] .loading-skeleton::after {
+    background-image: linear-gradient(
+        90deg,
+        rgba(255, 255, 255, 0) 0,
+        rgba(0, 0, 0, 0.03) 20%,
+        rgba(0, 0, 0, 0.06) 60%,
+        rgba(255, 255, 255, 0)
+    );
+}
+
+@keyframes shimmer {
+    100% {
+        transform: translateX(100%);
+    }
+}
+
+/* Improved card animation */
+@keyframes card-appear {
+    0% {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Floating Elements & Ambient Animation */
+.floating-elements {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 0;
+    transition: opacity 0.4s ease;
+}
+
+[data-theme="light"] .floating-elements {
+    opacity: 0.6;
+}
+
+.floating-element {
+    position: absolute;
+    border-radius: 50%;
+    opacity: 0.15;
+    filter: blur(30px);
+    transition: opacity 0.4s ease;
+}
+
+[data-theme="light"] .floating-element {
+    opacity: 0.1;
+}
+
+.element1 {
+    top: 20%;
+    left: 10%;
+    width: 300px;
+    height: 300px;
+    background: radial-gradient(circle, var(--neo-blue), transparent 70%);
+    animation: float-element 15s infinite alternate;
+}
+
+.element2 {
+    top: 40%;
+    right: 15%;
+    width: 400px;
+    height: 400px;
+    background: radial-gradient(circle, var(--neo-accent), transparent 70%);
+    animation: float-element 20s infinite alternate-reverse;
+}
+
+.element3 {
+    bottom: 15%;
+    left: 30%;
+    width: 250px;
+    height: 250px;
+    background: radial-gradient(circle, var(--neo-magenta), transparent 70%);
+    animation: float-element 18s infinite alternate;
+    animation-delay: 5s;
+}
+
+@keyframes float-element {
+    0% {
+        transform: translate(0, 0);
+    }
+    100% {
+        transform: translate(100px, 50px);
+    }
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+    .overlay h1 {
+        font-size: 2.5rem;
+    }
+    .faculty-img-wrapper {
+        height: 260px;
+    }
+}
+
+@media (max-width: 991px) {
+    .hero-section {
+        height: 400px;
+    }
+    
+    .overlay {
+        padding: 30px;
+        width: 85%;
+    }
+    
+    .overlay h1 {
+        font-size: 2rem;
+    }
+    
+    .overlay p {
+        font-size: 1rem;
+    }
+    
+    .faculty-img-wrapper {
+        height: 220px;
+    }
+}
+
+@media (max-width: 767px) {
+    .hero-section {
+        height: 350px;
+    }
+    
+    .overlay {
+        padding: 25px;
+        width: 90%;
+    }
+    
+    .overlay h1 {
+        font-size: 1.8rem;
+    }
+    
+    .faculty-img-wrapper {
+        height: 240px;
+    }
+    
+    .faculty-info {
+        padding: 20px;
+    }
+}
+
+@media (max-width: 576px) {
+    .hero-section {
+        height: 300px;
+    }
+    
+    .overlay {
+        padding: 20px;
+        width: 95%;
+    }
+    
+    .overlay h1 {
+        font-size: 1.5rem;
+    }
+    
+    .overlay p {
+        font-size: 0.9rem;
+    }
+}
+
+/* Animation for scroll-triggered elements */
+.scroll-reveal {
+    opacity: 0;
+    transform: translateY(30px);
+}
+
+.scroll-reveal.revealed {
+    animation: reveal 0.8s ease forwards;
+}
+
+@keyframes reveal {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Add animation to card row for staggered appearance */
+.faculty-section .row.g-4 > div:nth-child(1) .faculty-card {
+    animation-delay: 0.1s;
+}
+.faculty-section .row.g-4 > div:nth-child(2) .faculty-card {
+    animation-delay: 0.2s;
+}
+.faculty-section .row.g-4 > div:nth-child(3) .faculty-card {
+    animation-delay: 0.3s;
+}
+.faculty-section .row.g-4 > div:nth-child(4) .faculty-card {
+    animation-delay: 0.4s;
+}
+.faculty-section .row.g-4 > div:nth-child(5) .faculty-card {
+    animation-delay: 0.5s;
+}
+.faculty-section .row.g-4 > div:nth-child(6) .faculty-card {
+    animation-delay: 0.6s;
 }

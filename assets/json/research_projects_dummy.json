@@ -1,0 +1,1217 @@
+[
+  {
+    "_id": {
+      "$oid": "a2a8ec6f5fca4d4cb938db36"
+    },
+    "title": "Deep Learning-Based Early Detection of Plant Diseases Using Multispectral Imaging",
+    "abstract": "This research develops an advanced deep learning system for early detection of plant diseases using multispectral imaging technology. The project combines computer vision and machine learning to identify plant pathogens before visible symptoms appear.",
+    "description": "The project utilizes a custom-designed CNN architecture optimized for multispectral image analysis. We're collecting data from various agricultural settings using specialized multispectral cameras that capture both visible and near-infrared spectral bands. The system will be trained on a diverse dataset of healthy and infected plants, focusing on major crops in Bangladesh.",
+    "field": "Computer Vision & Machine Learning",
+    "keywords": [
+      "Deep Learning",
+      "Agriculture",
+      "Computer Vision",
+      "Multispectral Imaging",
+      "Plant Pathology"
+    ],
+    "institution": "United International University",
+    "createdAt": {
+      "$date": "2024-03-15T00:00:00Z"
+    },
+    "updatedAt": {
+      "$date": "2024-03-20T00:00:00Z"
+    },
+    "privacy": 0,
+    "members": [
+      {
+        "name": "Sadia Akter",
+        "role": "Lead Researcher",
+        "contribution": 40,
+        "userId": {
+          "$oid": "6656d4b4f7e5b8c9a0a1b2c8"
+        }
+      },
+      {
+        "name": "Samin Yeaser Khan",
+        "role": "ML Engineer",
+        "contribution": 30,
+        "userId": {
+          "$oid": "6833436be5c16779b409aa42"
+        }
+      },
+      {
+        "name": "Raisa Rahman",
+        "role": "Data Scientist",
+        "contribution": 30,
+        "userId": {
+          "$oid": "6656d4b4f7e5b8c9a0a1b2c9"
+        }
+      }
+    ],
+    "timeline": [
+      {
+        "title": "Dataset Collection and Preprocessing",
+        "description": "Collect multispectral images from partner farms and establish preprocessing pipeline",
+        "date": "2024-04-15",
+        "status": "in-progress",
+        "assignedBy": {
+          "id": "685efb55060ea6c5d8a0f162",
+          "name": "Dr. Mohammad Rahman",
+          "type": "faculty"
+        },
+        "assignedTo": [
+          {
+            "id": "6656d4b4f7e5b8c9a0a1b2c8",
+            "name": "Sadia Akter",
+            "type": "student"
+          },
+          {
+            "id": "6656d4b4f7e5b8c9a0a1b2c9",
+            "name": "Raisa Rahman",
+            "type": "student"
+          }
+        ]
+      },
+      {
+        "title": "Model Architecture Design",
+        "description": "Design and implement custom CNN architecture for multispectral data",
+        "date": "2024-05-15",
+        "status": "pending",
+        "assignedBy": {
+          "id": "685efb55060ea6c5d8a0f162",
+          "name": "Dr. Mohammad Rahman",
+          "type": "faculty"
+        },
+        "assignedTo": [
+          {
+            "id": "6833436be5c16779b409aa42",
+            "name": "Samin Yeaser Khan",
+            "type": "student"
+          }
+        ]
+      }
+    ],
+    "supervisor": {
+      "userId": {
+        "$oid": "685efb55060ea6c5d8a0f162"
+      },
+      "name": "Dr. Mohammad Rahman",
+      "role": "Supervisor",
+      "email": "mrahman@cse.uiu.ac.bd"
+    },
+    "links": {
+      "github": "https://github.com/uiu-research/plant-disease-detection",
+      "website": "https://plant-disease.uiu.ac.bd",
+      "paper": "",
+      "doi": "",
+      "youtube": "https://youtube.com/watch?v=demo1"
+    },
+    "stats": {
+      "views": 245,
+      "downloads": 32,
+      "favorites": 15
+    },
+    "comments": [],
+    "createdBy": "6833436be5c16779b409aa42",
+    "coverImage": ["plant-disease-detection-cover.jpg"],
+    "files": [],
+    "media": [],
+    "references": [
+      "Deep Learning for Plant Disease Detection: A Survey (2023)",
+      "Advances in Multispectral Imaging for Agriculture (2024)"
+    ],
+    "estimatedCompletionDate": {
+      "$date": "2024-12-30T00:00:00Z"
+    },
+    "etherpadId": "g.plantdisease$1163614683"
+  },
+  {
+    "_id": {
+      "$oid": "b3b9fd7g6gdb5e5dc049ec47"
+    },
+    "title": "Blockchain-Based Secure Healthcare Data Sharing Framework",
+    "abstract": "Development of a novel blockchain framework for secure sharing of healthcare data between hospitals, ensuring patient privacy while enabling efficient access for authorized healthcare providers.",
+    "description": "This project implements a permissioned blockchain network using Hyperledger Fabric to create a secure and transparent system for healthcare data sharing. The framework includes smart contracts for access control, audit trailing, and HIPAA compliance verification.",
+    "field": "Blockchain & Healthcare Informatics",
+    "keywords": [
+      "Blockchain",
+      "Healthcare",
+      "Data Privacy",
+      "Smart Contracts",
+      "Hyperledger"
+    ],
+    "institution": "United International University",
+    "createdAt": {
+      "$date": "2024-02-01T00:00:00Z"
+    },
+    "updatedAt": {
+      "$date": "2024-03-15T00:00:00Z"
+    },
+    "privacy": 0,
+    "members": [
+      {
+        "name": "Imran Hasan",
+        "role": "Project Lead",
+        "contribution": 35,
+        "userId": {
+          "$oid": "6656d4b4f7e5b8c9a0a1b2d0"
+        }
+      },
+      {
+        "name": "Tasnim Ahmed",
+        "role": "Blockchain Developer",
+        "contribution": 35,
+        "userId": {
+          "$oid": "6833436be5c16779b409aa43"
+        }
+      },
+      {
+        "name": "Nusrat Jahan",
+        "role": "Security Analyst",
+        "contribution": 30,
+        "userId": {
+          "$oid": "6656d4b4f7e5b8c9a0a1b2d1"
+        }
+      }
+    ],
+    "timeline": [
+      {
+        "title": "System Architecture Design",
+        "description": "Design the blockchain network architecture and smart contract specifications",
+        "date": "2024-03-01",
+        "status": "completed",
+        "assignedBy": {
+          "id": "685efb55060ea6c5d8a0f163",
+          "name": "Dr. Salekul Islam",
+          "type": "faculty"
+        },
+        "assignedTo": [
+          {
+            "id": "6656d4b4f7e5b8c9a0a1b2d0",
+            "name": "Imran Hasan",
+            "type": "student"
+          }
+        ]
+      },
+      {
+        "title": "Smart Contract Implementation",
+        "description": "Develop and test smart contracts for access control and data sharing",
+        "date": "2024-04-15",
+        "status": "in-progress",
+        "assignedBy": {
+          "id": "685efb55060ea6c5d8a0f163",
+          "name": "Dr. Salekul Islam",
+          "type": "faculty"
+        },
+        "assignedTo": [
+          {
+            "id": "6833436be5c16779b409aa43",
+            "name": "Tasnim Ahmed",
+            "type": "student"
+          }
+        ]
+      }
+    ],
+    "supervisor": {
+      "userId": {
+        "$oid": "685efb55060ea6c5d8a0f163"
+      },
+      "name": "Dr. Salekul Islam",
+      "role": "Supervisor",
+      "email": "salekul@cse.uiu.ac.bd"
+    },
+    "links": {
+      "github": "https://github.com/uiu-research/healthcare-blockchain",
+      "website": "https://healthcare-blockchain.uiu.ac.bd",
+      "paper": "",
+      "doi": "",
+      "youtube": "https://youtube.com/watch?v=demo2"
+    },
+    "stats": {
+      "views": 189,
+      "downloads": 28,
+      "favorites": 12
+    },
+    "comments": [],
+    "createdBy": "6656d4b4f7e5b8c9a0a1b2d0",
+    "coverImage": ["healthcare-blockchain-arch.png"],
+    "files": [],
+    "media": [],
+    "references": [
+      "Blockchain in Healthcare: Opportunities and Challenges (2024)",
+      "HIPAA Compliance in Blockchain Systems (2023)"
+    ],
+    "estimatedCompletionDate": {
+      "$date": "2024-12-15T00:00:00Z"
+    },
+    "etherpadId": "g.healthblock$1163614684"
+  },
+  {
+    "_id": {
+      "$oid": "c4c0ge8h7hec6f6ed150fd58"
+    },
+    "title": "Federated Learning for Privacy-Preserving IoT Networks",
+    "abstract": "Implementation of a federated learning system for IoT networks that enables collaborative model training while keeping sensitive data local to each device.",
+    "description": "This research develops a federated learning framework specifically designed for resource-constrained IoT devices. The system implements efficient model aggregation algorithms and compression techniques to minimize communication overhead while maintaining model accuracy.",
+    "field": "IoT & Distributed Systems",
+    "keywords": [
+      "Federated Learning",
+      "IoT",
+      "Privacy",
+      "Distributed Systems",
+      "Edge Computing"
+    ],
+    "institution": "United International University",
+    "createdAt": {
+      "$date": "2024-01-15T00:00:00Z"
+    },
+    "updatedAt": {
+      "$date": "2024-03-10T00:00:00Z"
+    },
+    "privacy": 0,
+    "members": [
+      {
+        "name": "Fahim Ahmed",
+        "role": "Research Lead",
+        "contribution": 40,
+        "userId": {
+          "$oid": "6656d4b4f7e5b8c9a0a1b2d2"
+        }
+      },
+      {
+        "name": "Nabila Khan",
+        "role": "IoT Specialist",
+        "contribution": 30,
+        "userId": {
+          "$oid": "6833436be5c16779b409aa44"
+        }
+      },
+      {
+        "name": "Mehedi Hasan",
+        "role": "ML Engineer",
+        "contribution": 30,
+        "userId": {
+          "$oid": "6656d4b4f7e5b8c9a0a1b2d3"
+        }
+      }
+    ],
+    "timeline": [
+      {
+        "title": "Framework Design",
+        "description": "Design the federated learning architecture and communication protocols",
+        "date": "2024-02-15",
+        "status": "completed",
+        "assignedBy": {
+          "id": "685efb55060ea6c5d8a0f164",
+          "name": "Dr. Hasan Mahmud",
+          "type": "faculty"
+        },
+        "assignedTo": [
+          {
+            "id": "6656d4b4f7e5b8c9a0a1b2d2",
+            "name": "Fahim Ahmed",
+            "type": "student"
+          }
+        ]
+      },
+      {
+        "title": "IoT Testbed Setup",
+        "description": "Set up and configure IoT devices for testing the federated learning system",
+        "date": "2024-04-01",
+        "status": "in-progress",
+        "assignedBy": {
+          "id": "685efb55060ea6c5d8a0f164",
+          "name": "Dr. Hasan Mahmud",
+          "type": "faculty"
+        },
+        "assignedTo": [
+          {
+            "id": "6833436be5c16779b409aa44",
+            "name": "Nabila Khan",
+            "type": "student"
+          }
+        ]
+      }
+    ],
+    "supervisor": {
+      "userId": {
+        "$oid": "685efb55060ea6c5d8a0f164"
+      },
+      "name": "Dr. Hasan Mahmud",
+      "role": "Supervisor",
+      "email": "hmahmud@cse.uiu.ac.bd"
+    },
+    "links": {
+      "github": "https://github.com/uiu-research/federated-iot",
+      "website": "https://federated-iot.uiu.ac.bd",
+      "paper": "",
+      "doi": "",
+      "youtube": "https://youtube.com/watch?v=demo3"
+    },
+    "stats": {
+      "views": 156,
+      "downloads": 23,
+      "favorites": 8
+    },
+    "comments": [],
+    "createdBy": "6656d4b4f7e5b8c9a0a1b2d2",
+    "coverImage": ["federated-iot-architecture.png"],
+    "files": [],
+    "media": [],
+    "references": [
+      "Federated Learning: Challenges and Opportunities (2024)",
+      "Resource-Efficient IoT Systems (2023)"
+    ],
+    "estimatedCompletionDate": {
+      "$date": "2024-11-30T00:00:00Z"
+    },
+    "etherpadId": "g.federatediot$1163614685"
+  },
+  {
+    "_id": {
+      "$oid": "d5d1hf9i8ifd7g7fe261ge69"
+    },
+    "title": "AI-Powered Traffic Management System for Smart Cities",
+    "abstract": "Development of an intelligent traffic management system using computer vision and deep learning to optimize traffic flow and reduce congestion in urban areas.",
+    "description": "This project implements a real-time traffic monitoring and control system using a network of smart cameras and AI algorithms. The system analyzes traffic patterns, predicts congestion, and dynamically adjusts traffic signals to optimize flow.",
+    "field": "Smart Cities & AI",
+    "keywords": [
+      "Computer Vision",
+      "Traffic Management",
+      "Smart Cities",
+      "Deep Learning",
+      "Real-time Systems"
+    ],
+    "institution": "United International University",
+    "createdAt": {
+      "$date": "2024-02-01T00:00:00Z"
+    },
+    "updatedAt": {
+      "$date": "2024-03-15T00:00:00Z"
+    },
+    "privacy": 0,
+    "members": [
+      {
+        "name": "Rahima Akter",
+        "role": "Project Lead",
+        "contribution": 35,
+        "userId": {
+          "$oid": "6656d4b4f7e5b8c9a0a1b2d4"
+        }
+      },
+      {
+        "name": "Kamal Hassan",
+        "role": "Computer Vision Engineer",
+        "contribution": 35,
+        "userId": {
+          "$oid": "6833436be5c16779b409aa45"
+        }
+      },
+      {
+        "name": "Farhan Ahmed",
+        "role": "System Architect",
+        "contribution": 30,
+        "userId": {
+          "$oid": "6656d4b4f7e5b8c9a0a1b2d5"
+        }
+      }
+    ],
+    "timeline": [
+      {
+        "title": "Camera Network Setup",
+        "description": "Install and configure smart cameras at key traffic intersections",
+        "date": "2024-03-01",
+        "status": "completed",
+        "assignedBy": {
+          "id": "685efb55060ea6c5d8a0f165",
+          "name": "Dr. Nasreen Khan",
+          "type": "faculty"
+        },
+        "assignedTo": [
+          {
+            "id": "6656d4b4f7e5b8c9a0a1b2d4",
+            "name": "Rahima Akter",
+            "type": "student"
+          }
+        ]
+      },
+      {
+        "title": "AI Model Development",
+        "description": "Develop and train deep learning models for traffic analysis",
+        "date": "2024-04-15",
+        "status": "in-progress",
+        "assignedBy": {
+          "id": "685efb55060ea6c5d8a0f165",
+          "name": "Dr. Nasreen Khan",
+          "type": "faculty"
+        },
+        "assignedTo": [
+          {
+            "id": "6833436be5c16779b409aa45",
+            "name": "Kamal Hassan",
+            "type": "student"
+          }
+        ]
+      }
+    ],
+    "supervisor": {
+      "userId": {
+        "$oid": "685efb55060ea6c5d8a0f165"
+      },
+      "name": "Dr. Nasreen Khan",
+      "role": "Supervisor",
+      "email": "nkhan@cse.uiu.ac.bd"
+    },
+    "links": {
+      "github": "https://github.com/uiu-research/smart-traffic",
+      "website": "https://smart-traffic.uiu.ac.bd",
+      "paper": "",
+      "doi": "",
+      "youtube": "https://youtube.com/watch?v=demo4"
+    },
+    "stats": {
+      "views": 178,
+      "downloads": 25,
+      "favorites": 14
+    },
+    "comments": [],
+    "createdBy": "6656d4b4f7e5b8c9a0a1b2d4",
+    "coverImage": ["smart-traffic-system.png"],
+    "files": [],
+    "media": [],
+    "references": [
+      "Smart City Traffic Management: A Review (2024)",
+      "Deep Learning in Urban Computing (2023)"
+    ],
+    "estimatedCompletionDate": {
+      "$date": "2024-12-01T00:00:00Z"
+    },
+    "etherpadId": "g.smarttraffic$1163614686"
+  },
+  {
+    "_id": {
+      "$oid": "e6e2ig0j9jge8h8gf372hf70"
+    },
+    "title": "Quantum-Resistant Cryptography Implementation",
+    "abstract": "Research and implementation of post-quantum cryptographic algorithms to secure communications against potential quantum computer attacks.",
+    "description": "This project focuses on implementing and evaluating various quantum-resistant cryptographic algorithms, particularly lattice-based and hash-based schemes. The research includes performance analysis and practical deployment considerations.",
+    "field": "Cryptography & Security",
+    "keywords": [
+      "Post-Quantum Cryptography",
+      "Cybersecurity",
+      "Lattice-based Cryptography",
+      "Hash-based Signatures",
+      "Network Security"
+    ],
+    "institution": "United International University",
+    "createdAt": {
+      "$date": "2024-01-15T00:00:00Z"
+    },
+    "updatedAt": {
+      "$date": "2024-03-10T00:00:00Z"
+    },
+    "privacy": 0,
+    "members": [
+      {
+        "name": "Zarin Islam",
+        "role": "Research Lead",
+        "contribution": 40,
+        "userId": {
+          "$oid": "6656d4b4f7e5b8c9a0a1b2d6"
+        }
+      },
+      {
+        "name": "Omar Farooq",
+        "role": "Cryptography Specialist",
+        "contribution": 30,
+        "userId": {
+          "$oid": "6833436be5c16779b409aa46"
+        }
+      },
+      {
+        "name": "Sabrina Rahman",
+        "role": "Security Analyst",
+        "contribution": 30,
+        "userId": {
+          "$oid": "6656d4b4f7e5b8c9a0a1b2d7"
+        }
+      }
+    ],
+    "timeline": [
+      {
+        "title": "Algorithm Selection",
+        "description": "Research and select suitable post-quantum algorithms",
+        "date": "2024-02-15",
+        "status": "completed",
+        "assignedBy": {
+          "id": "685efb55060ea6c5d8a0f166",
+          "name": "Dr. Mahbub Alam",
+          "type": "faculty"
+        },
+        "assignedTo": [
+          {
+            "id": "6656d4b4f7e5b8c9a0a1b2d6",
+            "name": "Zarin Islam",
+            "type": "student"
+          }
+        ]
+      },
+      {
+        "title": "Implementation Phase",
+        "description": "Implement selected algorithms and create testing framework",
+        "date": "2024-04-01",
+        "status": "in-progress",
+        "assignedBy": {
+          "id": "685efb55060ea6c5d8a0f166",
+          "name": "Dr. Mahbub Alam",
+          "type": "faculty"
+        },
+        "assignedTo": [
+          {
+            "id": "6833436be5c16779b409aa46",
+            "name": "Omar Farooq",
+            "type": "student"
+          }
+        ]
+      }
+    ],
+    "supervisor": {
+      "userId": {
+        "$oid": "685efb55060ea6c5d8a0f166"
+      },
+      "name": "Dr. Mahbub Alam",
+      "role": "Supervisor",
+      "email": "malam@cse.uiu.ac.bd"
+    },
+    "links": {
+      "github": "https://github.com/uiu-research/quantum-resistant-crypto",
+      "website": "https://pqc.uiu.ac.bd",
+      "paper": "",
+      "doi": "",
+      "youtube": "https://youtube.com/watch?v=demo5"
+    },
+    "stats": {
+      "views": 165,
+      "downloads": 28,
+      "favorites": 11
+    },
+    "comments": [],
+    "createdBy": "6656d4b4f7e5b8c9a0a1b2d6",
+    "coverImage": ["pqc-architecture.png"],
+    "files": [],
+    "media": [],
+    "references": [
+      "Post-Quantum Cryptography: Current State and Future Directions (2024)",
+      "Practical Lattice-Based Cryptography (2023)"
+    ],
+    "estimatedCompletionDate": {
+      "$date": "2024-11-30T00:00:00Z"
+    },
+    "etherpadId": "g.pqcrypto$1163614687"
+  },
+  {
+    "_id": {
+      "$oid": "f7f3jh1k0khf9i9hg483ig81"
+    },
+    "title": "Natural Language Processing for Bangla Medical Text Analysis",
+    "abstract": "Development of advanced NLP models for analyzing medical records and clinical notes in Bangla language to improve healthcare information processing.",
+    "description": "This research focuses on creating specialized NLP models for processing medical text in Bangla, including named entity recognition for medical terms, symptom classification, and automated diagnosis suggestion based on clinical notes.",
+    "field": "Natural Language Processing & Healthcare",
+    "keywords": [
+      "NLP",
+      "Healthcare",
+      "Bangla Language Processing",
+      "Medical Informatics",
+      "Machine Learning"
+    ],
+    "institution": "United International University",
+    "createdAt": {
+      "$date": "2024-02-15T00:00:00Z"
+    },
+    "updatedAt": {
+      "$date": "2024-03-20T00:00:00Z"
+    },
+    "privacy": 0,
+    "members": [
+      {
+        "name": "Tahmina Begum",
+        "role": "Research Lead",
+        "contribution": 40,
+        "userId": {
+          "$oid": "6656d4b4f7e5b8c9a0a1b2d8"
+        }
+      },
+      {
+        "name": "Arif Rahman",
+        "role": "NLP Engineer",
+        "contribution": 30,
+        "userId": {
+          "$oid": "6833436be5c16779b409aa47"
+        }
+      },
+      {
+        "name": "Dr. Farhana Kabir",
+        "role": "Medical Expert",
+        "contribution": 30,
+        "userId": {
+          "$oid": "6656d4b4f7e5b8c9a0a1b2d9"
+        }
+      }
+    ],
+    "timeline": [
+      {
+        "title": "Dataset Collection",
+        "description": "Collect and annotate Bangla medical text dataset",
+        "date": "2024-03-15",
+        "status": "completed",
+        "assignedBy": {
+          "id": "685efb55060ea6c5d8a0f167",
+          "name": "Dr. Shahida Khatun",
+          "type": "faculty"
+        },
+        "assignedTo": [
+          {
+            "id": "6656d4b4f7e5b8c9a0a1b2d8",
+            "name": "Tahmina Begum",
+            "type": "student"
+          }
+        ]
+      },
+      {
+        "title": "Model Development",
+        "description": "Develop and train NLP models for medical text analysis",
+        "date": "2024-04-15",
+        "status": "in-progress",
+        "assignedBy": {
+          "id": "685efb55060ea6c5d8a0f167",
+          "name": "Dr. Shahida Khatun",
+          "type": "faculty"
+        },
+        "assignedTo": [
+          {
+            "id": "6833436be5c16779b409aa47",
+            "name": "Arif Rahman",
+            "type": "student"
+          }
+        ]
+      }
+    ],
+    "supervisor": {
+      "userId": {
+        "$oid": "685efb55060ea6c5d8a0f167"
+      },
+      "name": "Dr. Shahida Khatun",
+      "role": "Supervisor",
+      "email": "shahida@cse.uiu.ac.bd"
+    },
+    "links": {
+      "github": "https://github.com/uiu-research/bangla-medical-nlp",
+      "website": "https://medical-nlp.uiu.ac.bd",
+      "paper": "",
+      "doi": "",
+      "youtube": "https://youtube.com/watch?v=demo6"
+    },
+    "stats": {
+      "views": 192,
+      "downloads": 31,
+      "favorites": 16
+    },
+    "comments": [],
+    "createdBy": "6656d4b4f7e5b8c9a0a1b2d8",
+    "coverImage": ["medical-nlp-system.png"],
+    "files": [],
+    "media": [],
+    "references": [
+      "NLP in Healthcare: A Comprehensive Review (2024)",
+      "Advances in Bangla Language Processing (2023)"
+    ],
+    "estimatedCompletionDate": {
+      "$date": "2024-12-15T00:00:00Z"
+    },
+    "etherpadId": "g.medicalnlp$1163614688"
+  },
+  {
+    "_id": {
+      "$oid": "g8g4ki2l1lig0j0ih594jh92"
+    },
+    "title": "Renewable Energy Optimization using Machine Learning",
+    "abstract": "Implementation of machine learning algorithms to optimize renewable energy generation and distribution systems, focusing on solar and wind power integration.",
+    "description": "This project develops ML models for predicting renewable energy generation patterns and optimizing grid integration. The system includes weather pattern analysis, load forecasting, and smart grid management components.",
+    "field": "Renewable Energy & Machine Learning",
+    "keywords": [
+      "Renewable Energy",
+      "Machine Learning",
+      "Smart Grid",
+      "Energy Optimization",
+      "Predictive Analytics"
+    ],
+    "institution": "United International University",
+    "createdAt": {
+      "$date": "2024-01-20T00:00:00Z"
+    },
+    "updatedAt": {
+      "$date": "2024-03-05T00:00:00Z"
+    },
+    "privacy": 0,
+    "members": [
+      {
+        "name": "Mahmud Hassan",
+        "role": "Project Lead",
+        "contribution": 35,
+        "userId": {
+          "$oid": "6656d4b4f7e5b8c9a0a1b2e0"
+        }
+      },
+      {
+        "name": "Nusrat Jahan",
+        "role": "ML Engineer",
+        "contribution": 35,
+        "userId": {
+          "$oid": "6833436be5c16779b409aa48"
+        }
+      },
+      {
+        "name": "Kamrul Islam",
+        "role": "Energy Systems Expert",
+        "contribution": 30,
+        "userId": {
+          "$oid": "6656d4b4f7e5b8c9a0a1b2e1"
+        }
+      }
+    ],
+    "timeline": [
+      {
+        "title": "Data Collection System Setup",
+        "description": "Install sensors and set up data collection infrastructure",
+        "date": "2024-02-20",
+        "status": "completed",
+        "assignedBy": {
+          "id": "685efb55060ea6c5d8a0f168",
+          "name": "Dr. Rafiqul Islam",
+          "type": "faculty"
+        },
+        "assignedTo": [
+          {
+            "id": "6656d4b4f7e5b8c9a0a1b2e0",
+            "name": "Mahmud Hassan",
+            "type": "student"
+          }
+        ]
+      },
+      {
+        "title": "Predictive Model Development",
+        "description": "Develop ML models for energy generation prediction",
+        "date": "2024-04-01",
+        "status": "in-progress",
+        "assignedBy": {
+          "id": "685efb55060ea6c5d8a0f168",
+          "name": "Dr. Rafiqul Islam",
+          "type": "faculty"
+        },
+        "assignedTo": [
+          {
+            "id": "6833436be5c16779b409aa48",
+            "name": "Nusrat Jahan",
+            "type": "student"
+          }
+        ]
+      }
+    ],
+    "supervisor": {
+      "userId": {
+        "$oid": "685efb55060ea6c5d8a0f168"
+      },
+      "name": "Dr. Rafiqul Islam",
+      "role": "Supervisor",
+      "email": "rafiqul@cse.uiu.ac.bd"
+    },
+    "links": {
+      "github": "https://github.com/uiu-research/renewable-energy-ml",
+      "website": "https://renewable-ml.uiu.ac.bd",
+      "paper": "",
+      "doi": "",
+      "youtube": "https://youtube.com/watch?v=demo7"
+    },
+    "stats": {
+      "views": 145,
+      "downloads": 22,
+      "favorites": 13
+    },
+    "comments": [],
+    "createdBy": "6656d4b4f7e5b8c9a0a1b2e0",
+    "coverImage": ["renewable-energy-ml.png"],
+    "files": [],
+    "media": [],
+    "references": [
+      "Machine Learning in Renewable Energy Systems (2024)",
+      "Smart Grid Integration Techniques (2023)"
+    ],
+    "estimatedCompletionDate": {
+      "$date": "2024-11-30T00:00:00Z"
+    },
+    "etherpadId": "g.renewableml$1163614689"
+  },
+  {
+    "_id": {
+      "$oid": "h9h5lj3m2mjh1k1ji6a5ki03"
+    },
+    "title": "Augmented Reality Platform for Interactive STEM Education",
+    "abstract": "Development of an AR-based educational platform that transforms traditional STEM learning materials into interactive 3D visualizations, enhancing student engagement and understanding.",
+    "description": "This project creates an innovative augmented reality platform specifically designed for STEM education. The system uses advanced computer vision and 3D modeling to convert textbook content into interactive AR experiences, allowing students to manipulate and explore complex scientific concepts in real-time.",
+    "field": "Educational Technology & AR",
+    "keywords": [
+      "Augmented Reality",
+      "Education Technology",
+      "STEM Education",
+      "Interactive Learning",
+      "3D Visualization"
+    ],
+    "institution": "United International University",
+    "createdAt": {
+      "$date": "2024-02-20T00:00:00Z"
+    },
+    "updatedAt": {
+      "$date": "2024-03-25T00:00:00Z"
+    },
+    "privacy": 0,
+    "members": [
+      {
+        "name": "Rifat Hossain",
+        "role": "Project Lead",
+        "contribution": 35,
+        "userId": {
+          "$oid": "6656d4b4f7e5b8c9a0a1b2e0"
+        }
+      },
+      {
+        "name": "Samira Akter",
+        "role": "AR Developer",
+        "contribution": 35,
+        "userId": {
+          "$oid": "6833436be5c16779b409aa48"
+        }
+      },
+      {
+        "name": "Md. Rakib Islam",
+        "role": "Educational Content Specialist",
+        "contribution": 30,
+        "userId": {
+          "$oid": "6656d4b4f7e5b8c9a0a1b2e1"
+        }
+      }
+    ],
+    "timeline": [
+      {
+        "title": "AR Framework Development",
+        "description": "Develop core AR framework and content rendering engine",
+        "date": "2024-03-20",
+        "status": "completed",
+        "assignedBy": {
+          "id": "685efb55060ea6c5d8a0f168",
+          "name": "Dr. Taslima Akter",
+          "type": "faculty"
+        },
+        "assignedTo": [
+          {
+            "id": "6656d4b4f7e5b8c9a0a1b2e0",
+            "name": "Rifat Hossain",
+            "type": "student"
+          }
+        ]
+      },
+      {
+        "title": "Content Creation System",
+        "description": "Implement tools for converting STEM content to AR format",
+        "date": "2024-05-01",
+        "status": "in-progress",
+        "assignedBy": {
+          "id": "685efb55060ea6c5d8a0f168",
+          "name": "Dr. Taslima Akter",
+          "type": "faculty"
+        },
+        "assignedTo": [
+          {
+            "id": "6833436be5c16779b409aa48",
+            "name": "Samira Akter",
+            "type": "student"
+          }
+        ]
+      }
+    ],
+    "supervisor": {
+      "userId": {
+        "$oid": "685efb55060ea6c5d8a0f168"
+      },
+      "name": "Dr. Taslima Akter",
+      "role": "Supervisor",
+      "email": "taslima@cse.uiu.ac.bd"
+    },
+    "links": {
+      "github": "https://github.com/uiu-research/ar-stem-education",
+      "website": "https://ar-stem.uiu.ac.bd",
+      "paper": "",
+      "doi": "",
+      "youtube": "https://youtube.com/watch?v=demo8"
+    },
+    "stats": {
+      "views": 145,
+      "downloads": 22,
+      "favorites": 13
+    },
+    "comments": [],
+    "createdBy": "6656d4b4f7e5b8c9a0a1b2e0",
+    "coverImage": ["ar-stem-platform.png"],
+    "files": [],
+    "media": [],
+    "references": [
+      "Augmented Reality in Education: A Systematic Review (2024)",
+      "Interactive Technologies for STEM Learning (2023)"
+    ],
+    "estimatedCompletionDate": {
+      "$date": "2024-11-15T00:00:00Z"
+    },
+    "etherpadId": "g.arstem$1163614689"
+  },
+  {
+    "_id": {
+      "$oid": "i0i6mk4n3nki2l2kj7b6lj14"
+    },
+    "title": "Autonomous Drone Swarm Coordination System",
+    "abstract": "Development of a distributed control system for coordinating swarms of autonomous drones in complex environments, with applications in search and rescue, environmental monitoring, and disaster response.",
+    "description": "This research focuses on creating a robust system for managing large-scale drone swarms using distributed algorithms and real-time coordination protocols. The project implements advanced collision avoidance, task allocation, and formation control mechanisms while optimizing for energy efficiency and mission objectives.",
+    "field": "Robotics & Distributed Systems",
+    "keywords": [
+      "Drone Swarms",
+      "Autonomous Systems",
+      "Distributed Computing",
+      "Robotics",
+      "Multi-agent Systems"
+    ],
+    "institution": "United International University",
+    "createdAt": {
+      "$date": "2024-02-25T00:00:00Z"
+    },
+    "updatedAt": {
+      "$date": "2024-03-30T00:00:00Z"
+    },
+    "privacy": 0,
+    "members": [
+      {
+        "name": "Tanvir Ahmed",
+        "role": "Research Lead",
+        "contribution": 35,
+        "userId": {
+          "$oid": "6656d4b4f7e5b8c9a0a1b2e2"
+        }
+      },
+      {
+        "name": "Nadia Islam",
+        "role": "Robotics Engineer",
+        "contribution": 35,
+        "userId": {
+          "$oid": "6833436be5c16779b409aa49"
+        }
+      },
+      {
+        "name": "Shahriar Khan",
+        "role": "Systems Architect",
+        "contribution": 30,
+        "userId": {
+          "$oid": "6656d4b4f7e5b8c9a0a1b2e3"
+        }
+      }
+    ],
+    "timeline": [
+      {
+        "title": "Swarm Algorithm Development",
+        "description": "Design and implement core swarm coordination algorithms",
+        "date": "2024-03-25",
+        "status": "completed",
+        "assignedBy": {
+          "id": "685efb55060ea6c5d8a0f169",
+          "name": "Dr. Rashid Khan",
+          "type": "faculty"
+        },
+        "assignedTo": [
+          {
+            "id": "6656d4b4f7e5b8c9a0a1b2e2",
+            "name": "Tanvir Ahmed",
+            "type": "student"
+          }
+        ]
+      },
+      {
+        "title": "Simulation Environment",
+        "description": "Develop virtual testing environment for swarm behavior",
+        "date": "2024-05-15",
+        "status": "in-progress",
+        "assignedBy": {
+          "id": "685efb55060ea6c5d8a0f169",
+          "name": "Dr. Rashid Khan",
+          "type": "faculty"
+        },
+        "assignedTo": [
+          {
+            "id": "6833436be5c16779b409aa49",
+            "name": "Nadia Islam",
+            "type": "student"
+          }
+        ]
+      }
+    ],
+    "supervisor": {
+      "userId": {
+        "$oid": "685efb55060ea6c5d8a0f169"
+      },
+      "name": "Dr. Rashid Khan",
+      "role": "Supervisor",
+      "email": "rkhan@cse.uiu.ac.bd"
+    },
+    "links": {
+      "github": "https://github.com/uiu-research/drone-swarm-coordination",
+      "website": "https://drone-swarm.uiu.ac.bd",
+      "paper": "",
+      "doi": "",
+      "youtube": "https://youtube.com/watch?v=demo9"
+    },
+    "stats": {
+      "views": 168,
+      "downloads": 27,
+      "favorites": 15
+    },
+    "comments": [],
+    "createdBy": "6656d4b4f7e5b8c9a0a1b2e2",
+    "coverImage": ["drone-swarm-system.png"],
+    "files": [],
+    "media": [],
+    "references": [
+      "Swarm Robotics: Principles and Applications (2024)",
+      "Distributed Control in Multi-Agent Systems (2023)"
+    ],
+    "estimatedCompletionDate": {
+      "$date": "2024-12-20T00:00:00Z"
+    },
+    "etherpadId": "g.droneswarm$1163614690"
+  },
+  {
+    "_id": {
+      "$oid": "j1j7nl5o4olj3m3lk8c7mk25"
+    },
+    "title": "Multimodal Emotion Recognition in Social Media Content",
+    "abstract": "Development of an advanced AI system that combines text, image, and video analysis to accurately detect and classify emotions in social media content, with applications in mental health monitoring and online sentiment analysis.",
+    "description": "This research project develops a comprehensive emotion recognition system that integrates multiple AI models to analyze social media content across different modalities. The system combines NLP for text analysis, computer vision for facial expression and gesture recognition, and audio processing for voice emotion detection, creating a holistic approach to understanding emotional context in social media interactions.",
+    "field": "Artificial Intelligence & Social Computing",
+    "keywords": [
+      "Emotion Recognition",
+      "Multimodal AI",
+      "Social Media Analysis",
+      "Mental Health",
+      "Sentiment Analysis"
+    ],
+    "institution": "United International University",
+    "createdAt": {
+      "$date": "2024-03-01T00:00:00Z"
+    },
+    "updatedAt": {
+      "$date": "2024-04-05T00:00:00Z"
+    },
+    "privacy": 0,
+    "members": [
+      {
+        "name": "Anika Rahman",
+        "role": "Research Lead",
+        "contribution": 35,
+        "userId": {
+          "$oid": "6656d4b4f7e5b8c9a0a1b2e4"
+        }
+      },
+      {
+        "name": "Fahim Karim",
+        "role": "AI Engineer",
+        "contribution": 35,
+        "userId": {
+          "$oid": "6833436be5c16779b409aa50"
+        }
+      },
+      {
+        "name": "Lamia Hossain",
+        "role": "Data Scientist",
+        "contribution": 30,
+        "userId": {
+          "$oid": "6656d4b4f7e5b8c9a0a1b2e5"
+        }
+      }
+    ],
+    "timeline": [
+      {
+        "title": "Dataset Creation",
+        "description": "Collect and annotate multimodal social media content",
+        "date": "2024-04-01",
+        "status": "completed",
+        "assignedBy": {
+          "id": "685efb55060ea6c5d8a0f170",
+          "name": "Dr. Farhana Islam",
+          "type": "faculty"
+        },
+        "assignedTo": [
+          {
+            "id": "6656d4b4f7e5b8c9a0a1b2e4",
+            "name": "Anika Rahman",
+            "type": "student"
+          }
+        ]
+      },
+      {
+        "title": "Model Integration",
+        "description": "Develop and integrate different AI models for multimodal analysis",
+        "date": "2024-05-30",
+        "status": "in-progress",
+        "assignedBy": {
+          "id": "685efb55060ea6c5d8a0f170",
+          "name": "Dr. Farhana Islam",
+          "type": "faculty"
+        },
+        "assignedTo": [
+          {
+            "id": "6833436be5c16779b409aa50",
+            "name": "Fahim Karim",
+            "type": "student"
+          }
+        ]
+      }
+    ],
+    "supervisor": {
+      "userId": {
+        "$oid": "685efb55060ea6c5d8a0f170"
+      },
+      "name": "Dr. Farhana Islam",
+      "role": "Supervisor",
+      "email": "fislam@cse.uiu.ac.bd"
+    },
+    "links": {
+      "github": "https://github.com/uiu-research/emotion-recognition-ai",
+      "website": "https://emotion-ai.uiu.ac.bd",
+      "paper": "",
+      "doi": "",
+      "youtube": "https://youtube.com/watch?v=demo10"
+    },
+    "stats": {
+      "views": 182,
+      "downloads": 29,
+      "favorites": 17
+    },
+    "comments": [],
+    "createdBy": "6656d4b4f7e5b8c9a0a1b2e4",
+    "coverImage": ["emotion-recognition-system.png"],
+    "files": [],
+    "media": [],
+    "references": [
+      "Multimodal Emotion Recognition: A Survey (2024)",
+      "Social Media Analysis for Mental Health Monitoring (2023)"
+    ],
+    "estimatedCompletionDate": {
+      "$date": "2024-12-10T00:00:00Z"
+    },
+    "etherpadId": "g.emotionai$1163614691"
+  }
+]

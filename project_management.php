@@ -11,8 +11,8 @@ session_set_cookie_params([
     'samesite' => 'Strict'
 ]);
 session_start();
-// Session idle timeout (30 seconds)
-$timeout = 30; // 30 seconds
+// Session idle timeout (30 minutes)
+$timeout = 30 * 60; // 30 minutes in seconds
 if (isset($_SESSION['LAST_ACTIVITY']) && (time() - $_SESSION['LAST_ACTIVITY'] > $timeout)) {
     session_unset();
     session_destroy();

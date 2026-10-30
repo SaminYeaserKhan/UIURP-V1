@@ -42,19 +42,6 @@ and a forum. Built with PHP and MongoDB.
 - Idle sessions sign out automatically
 - An admin dashboard for managing users and admin roles
 
-## Team
-
-Built by a team of four for the Software Engineering Lab course, then extended with security
-features: Najmol Hasan, Syed Nafis, Sazzad Abedin and
-[Samin Yeaser Khan](https://github.com/SaminYeaserKhan).
-
-Samin built the research-project management module, the project timeline, meeting scheduling
-and member schedules, the calendar and bulletin board, project file management, chat message
-encryption, the admin dashboard, account lockout and the preference tracking behind
-recommendations. The full development history, with every member's commits, is in the team
-repository: [syed-nafis/uiurp](https://github.com/syed-nafis/uiurp). This repository holds
-the final version from its `security_mayen` branch.
-
 ## Built with
 
 PHP · MongoDB (MongoDB PHP library) · JavaScript · Bootstrap · Google Gemini API ·
